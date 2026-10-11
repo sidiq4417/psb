@@ -75,12 +75,20 @@ class AdmissionPeriodController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'academic_year_id' => ['label' => 'Tahun Ajaran', 'rules' => 'required|is_natural_no_zero'],
-            'code' => ['label' => 'Kode', 'rules' => 'required'],
-            'name' => ['label' => 'Nama Periode', 'rules' => 'required'],
-            'registration_start_at' => ['label' => 'Mulai', 'rules' => 'permit_empty'],
-            'registration_end_at' => ['label' => 'Akhir', 'rules' => 'permit_empty'],
-            'registration_fee' => ['label' => 'Biaya Pendaftaran', 'rules' => 'permit_empty|decimal'],
+            'academic_year_id' => [
+                'label' => 'Tahun Ajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[academic_years.id]',
+                'errors' => ['is_not_unique' => 'Tahun Ajaran tidak ditemukan.'],
+            ],
+            'code' => ['label' => 'Kode', 'rules' => 'required|max_length[50]'],
+            'name' => ['label' => 'Nama Periode', 'rules' => 'required|max_length[255]'],
+            'registration_start_at' => ['label' => 'Mulai Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'registration_end_at' => ['label' => 'Akhir Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'registration_fee' => [
+                'label' => 'Biaya Pendaftaran',
+                'rules' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than[10000000000000]',
+                'errors' => ['greater_than_equal_to' => 'Biaya Pendaftaran tidak boleh negatif.'],
+            ],
         ];
 
         if (!$this->validate($rules)) {
@@ -95,13 +103,23 @@ class AdmissionPeriodController extends BaseController
         $actor = (int)session()->get('actor');
         $academic_year_id = (int)$this->request->getPost('academic_year_id');
         $code = (string)$this->request->getPost('code');
+        $start_at = (string)$this->request->getPost('registration_start_at');
+        $end_at = (string)$this->request->getPost('registration_end_at');
+        $fee = trim((string)$this->request->getPost('registration_fee'));
+        if ($start_at !== '' && $end_at !== '' && $end_at < $start_at) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['registration_end_at' => 'Akhir Pendaftaran tidak boleh sebelum Mulai Pendaftaran.'],
+            ]);
+        }
+
         $data = [
             'academic_year_id' => $academic_year_id,
             'code' => $code,
             'name' => (string)$this->request->getPost('name'),
-            'registration_start_at' => (string)$this->request->getPost('registration_start_at'),
-            'registration_end_at' => (string)$this->request->getPost('registration_end_at'),
-            'registration_fee' => (string)$this->request->getPost('registration_fee'),
+            'registration_start_at' => $start_at !== '' ? $start_at : null,
+            'registration_end_at' => $end_at !== '' ? $end_at : null,
+            'registration_fee' => $fee !== '' ? round((float)$fee, 2) : null,
         ];
         $unique_id = 'admission_period:' . $academic_year_id . ':' . url_title(mb_strtolower($code));
 

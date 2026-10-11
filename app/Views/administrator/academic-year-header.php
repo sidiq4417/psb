@@ -98,7 +98,7 @@
                     <div class="data-icon"><i class="cil-calendar"></i></div>
                     <div class="data-content">
                         <span class="data-label">Tahun Ajaran</span>
-                        <span class="data-value"><?= $academic_year->name ?? '-' ?></span>
+                        <span class="data-value"><?= esc((string) ($academic_year->name ?? '-')) ?></span>
                     </div>
                 </div>
                 <div class="data-item mb-0">

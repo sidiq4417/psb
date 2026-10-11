@@ -151,13 +151,13 @@
 
             <div class="form-floating mb-3">
                 <input type="text" class="form-control" name="full_name" id="full_name"
-                    placeholder="Nama" value="<?= $full_name ?>">
+                    placeholder="Nama" value="<?= esc($full_name, 'attr') ?>">
                 <label for="full_name">Nama Lengkap</label>
             </div>
 
             <div class="form-floating mb-4">
                 <input type="email" class="form-control" name="email" id="email"
-                    placeholder="Email" value="<?= $email ?>">
+                    placeholder="Email" value="<?= esc($email, 'attr') ?>">
                 <label for="email">Email</label>
             </div>
 
@@ -166,6 +166,7 @@
             <div class="password-section-title">
                 <i class="cil-lock-locked"></i> Ubah Kata Sandi
             </div>
+            <p class="section-subtitle mb-3">Kata sandi saat ini wajib diisi jika Anda mengubah email atau kata sandi.</p>
 
             <div class="form-floating pwd-toggle-container">
                 <input type="password" class="form-control" name="current_password" id="current_password"
@@ -259,10 +260,10 @@
                 const data = await res.json();
 
                 if (!res.ok || !data.success) {
-                    showAlert(data.errors ? Object.values(data.errors).join("<br/>") : (data.message || "Gagal menyimpan perubahan."), "alert-danger");
+                    showAlert(data.errors ? Object.values(data.errors).map(H.Esc).join("<br/>") : H.Esc(data.message || "Gagal menyimpan perubahan."), "alert-danger");
                 } else {
                     pwdInputs.forEach(input => input.value = "");
-                    showAlert(data.message || "Perubahan berhasil disimpan.", "alert-success");
+                    showAlert(H.Esc(data.message || "Perubahan berhasil disimpan."), "alert-success");
                 }
             } catch (error) {
                 showAlert("Koneksi gagal. Silakan coba lagi nanti.", "alert-danger");

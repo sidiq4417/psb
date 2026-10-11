@@ -278,8 +278,9 @@
     }
 
     function updateProgress() {
-        const total = docs.length;
-        const uploaded = docs.filter(d => d.file_name).length;
+        const required = docs.filter(d => d.required !== false);
+        const total = required.length;
+        const uploaded = required.filter(d => d.file_name).length;
         const pct = total > 0 ? Math.round((uploaded / total) * 100) : 0;
         document.getElementById("progressCount").textContent = `${uploaded}/${total}`;
         document.getElementById("progressBar").style.width = pct + "%";
@@ -298,15 +299,15 @@
 
         try {
             const res = await fetchData(_BASE_URL + "students/document-requirements/upload", fd);
-            if (res.success) {
+            if (res.success && res.file_name) {
                 const doc = docs.find(d => d.document_id === documentId);
-                if (doc) doc.file_name = file.name;
+                if (doc) doc.file_name = res.file_name;
                 renderCards();
                 updateProgress();
                 showToast("Dokumen berhasil diunggah", "success");
             } else {
                 input.value = "";
-                const msg = res.errors ? Object.values(res.errors).join(", ") : "Gagal mengunggah";
+                const msg = res.errors && Object.keys(res.errors).length ? Object.values(res.errors).join(", ") : (res.message || "Gagal mengunggah");
                 showToast(msg, "error");
             }
         } catch (err) {
@@ -346,6 +347,10 @@
             const icon = docIcons[i % docIcons.length];
             const hasFile = !!d.file_name;
             const disabled = isSubmitted ? "disabled" : "";
+            const documentId = parseInt(d.document_id) || 0;
+            const requiredBadge = d.required === false
+                ? '<span class="badge bg-light text-secondary border ms-1">Opsional</span>'
+                : '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Wajib</span>';
 
             html += `
                 <div class="col-md-6">
@@ -356,8 +361,8 @@
                                     <i class="${icon}" style="font-size: 1.3rem;"></i>
                                 </div>
                                 <div class="flex-grow-1 min-width-0">
-                                    <div class="doc-name">${d.document_name}</div>
-                                    <div class="doc-meta">Maks. ${formatSize(d.max_size)} &middot; ${acceptTypes}</div>
+                                    <div class="doc-name">${H.Esc(d.document_name)}${requiredBadge}</div>
+                                    <div class="doc-meta">Maks. ${H.Esc(formatSize(d.max_size))} &middot; ${acceptTypes}</div>
                                 </div>
                                 <div>
                                     ${hasFile
@@ -368,14 +373,14 @@
 
                             <div class="doc-actions">
                                 ${hasFile ? `
-                                    <a href="${_BASE_URL}students/document-requirements/download/${d.file_name}"
+                                    <a href="${_BASE_URL}students/document-requirements/download/${H.Esc(encodeURIComponent(d.file_name))}"
                                         class="btn btn-outline-success d-inline-flex align-items-center justify-content-center">
                                         <i class="cil-cloud-download me-1"></i> Unduh
                                     </a>
                                 ` : ''}
                                 <div class="upload-area flex-grow-1 ${hasFile ? 'uploaded' : ''}">
                                     <input type="file" accept="${acceptTypes}" ${disabled}
-                                        onchange="uploadFile(this, ${d.document_id})">
+                                        onchange="uploadFile(this, ${documentId})">
                                     <div class="upload-label">
                                         ${hasFile
                                             ? '<i class="cil-check-circle"></i> Ketuk untuk ganti file'

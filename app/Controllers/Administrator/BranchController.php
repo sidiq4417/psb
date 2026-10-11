@@ -81,12 +81,12 @@ class BranchController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'code' => ['label' => 'Kode Sekolah', 'rules' => 'required'],
-            'name' => ['label' => 'Nama Sekolah', 'rules' => 'required'],
+            'code' => ['label' => 'Kode Sekolah', 'rules' => 'required|max_length[50]'],
+            'name' => ['label' => 'Nama Sekolah', 'rules' => 'required|max_length[255]'],
             'education_level' => ['label' => 'Jenjang Pendidikan', 'rules' => 'required|in_list[TK,RA,SD,MI,SMP,MTs,SMA,MA,SMK]'],
-            'address' => ['label' => 'Alamat', 'rules' => 'permit_empty'],
-            'phone' => ['label' => 'Telepon', 'rules' => 'permit_empty'],
-            'email' => ['label' => 'Email', 'rules' => 'permit_empty|valid_email'],
+            'address' => ['label' => 'Alamat', 'rules' => 'permit_empty|max_length[1000]'],
+            'phone' => ['label' => 'Telepon', 'rules' => 'permit_empty|max_length[50]'],
+            'email' => ['label' => 'Email', 'rules' => 'permit_empty|valid_email|max_length[255]'],
         ];
 
         if (!$this->validate($rules)) {

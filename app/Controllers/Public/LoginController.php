@@ -118,7 +118,9 @@ class LoginController extends BaseController
             }
 
             $email = $this->request->getPost('email');
+            $email = is_string($email) ? trim($email) : '';
             $password = $this->request->getPost('password');
+            $password = is_string($password) ? $password : '';
             $remember_me = filter_var(
                 $this->request->getPost(Setting::REMEMBER_COOKIE_NAME),
                 FILTER_VALIDATE_BOOLEAN,

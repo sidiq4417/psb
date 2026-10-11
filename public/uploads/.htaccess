@@ -1,0 +1,22 @@
+# ----------------------------------------------------------------------
+# Public uploads (logo, favicon, payment method and registration terms).
+# Files here are data only: never run scripts and never list the folder.
+# Images and PDF files are still served normally.
+# ----------------------------------------------------------------------
+Options -ExecCGI -Indexes
+
+<IfModule mod_mime.c>
+	RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .phar .phps .pht .cgi .pl .py .sh
+	RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .phar .phps .pht .cgi .pl .py .sh
+</IfModule>
+
+# Deny scripts (also behind a second extension, e.g. "shell.php.jpg")
+# and server configuration files such as .htaccess, .htpasswd and .user.ini.
+<FilesMatch "(?i)(\.(php[0-9]*|phtml|phar|phps|pht|cgi|pl|py|sh|bash|asp|aspx|jsp|shtml)(\.|$)|^\.(ht|user\.ini))">
+	<IfModule authz_core_module>
+		Require all denied
+	</IfModule>
+	<IfModule !authz_core_module>
+		Deny from all
+	</IfModule>
+</FilesMatch>

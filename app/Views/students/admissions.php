@@ -164,7 +164,7 @@
                 <select class="form-select border-2" name="academic_year_id" required>
                     <option value="">-- Pilih --</option>
                     <?php foreach ($academic_years as $k => $v) { ?>
-                        <option value="<?php echo $k ?>"><?php echo $v ?></option>
+                        <option value="<?= esc((string)$k, 'attr') ?>"><?= esc($v) ?></option>
                     <?php } ?>
                 </select>
             </div>
@@ -173,7 +173,7 @@
                 <select class="form-select border-2" name="admission_period_id">
                     <option value="0">Semua Periode</option>
                     <?php foreach ($admission_periods as $k => $v) { ?>
-                        <option value="<?php echo $k ?>"><?php echo $v ?></option>
+                        <option value="<?= esc((string)$k, 'attr') ?>"><?= esc($v) ?></option>
                     <?php } ?>
                 </select>
             </div>
@@ -212,12 +212,12 @@
 </div>
 
 <script>
-    DS.AdmissionPeriods = <?= json_encode($admission_periods) ?>;
-    DS.PeriodAcademicYearMap = <?= json_encode($period_academic_year_map) ?>;
+    DS.AdmissionPeriods = <?= toJson((object) $admission_periods) ?>;
+    DS.PeriodAcademicYearMap = <?= toJson((object) $period_academic_year_map) ?>;
     let allRecords = [];
     let selectedOfferingIds = [];
     let isSubmitted = false;
-    let allowMultiple = <?= json_encode($allow_multiple ?? false) ?>;
+    let allowMultiple = <?= toJson((bool)($allow_multiple ?? false)) ?>;
 
     async function fetchData(url, params = null) {
         const res = await fetch(url, {
@@ -239,7 +239,7 @@
         elementId.classList.remove('d-none');
         elementId.classList.remove('alert-success', 'alert-danger');
         elementId.classList.add("alert-" + (res.success ? "success" : "danger"));
-        elementId.innerHTML = res.message;
+        elementId.textContent = res.message || "";
 
         if (res.success) {
             if (res.allow_multiple) {
@@ -263,7 +263,7 @@
         elementId.classList.remove('d-none');
         elementId.classList.remove('alert-success', 'alert-danger');
         elementId.classList.add("alert-" + (res.success ? "success" : "danger"));
-        elementId.innerHTML = res.message;
+        elementId.textContent = res.message || "";
 
         if (res.success) {
             selectedOfferingIds = res.admission_offering_ids || [];
@@ -303,14 +303,15 @@
             }
 
             const fee = row.registration_fee ? 'Rp ' + parseInt(row.registration_fee).toLocaleString('id-ID') : 'Gratis';
+            const offeringId = parseInt(row.id) || 0;
             let clickHandler = '';
             if (!isSubmitted) {
                 if (allowMultiple) {
                     clickHandler = isSelected
-                        ? `onclick="removeRegistration(${row.id})"`
-                        : `onclick="saveRegistration(${row.id})"`;
+                        ? `onclick="removeRegistration(${offeringId})"`
+                        : `onclick="saveRegistration(${offeringId})"`;
                 } else {
-                    clickHandler = `onclick="saveRegistration(${row.id})"`;
+                    clickHandler = `onclick="saveRegistration(${offeringId})"`;
                 }
             }
             const cursorClass = isSubmitted || clickHandler === '' ? ' cursor-default' : '';
@@ -319,24 +320,24 @@
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm admission-card${isSelected ? ' selected' : ''}${cursorClass}" ${clickHandler}>
                     <div class="card-body p-4">
-                        <span class="badge badge-degree ${isSelected ? 'bg-success text-white' : 'bg-info text-dark'} text-uppercase">${row.school_name}</span>
+                        <span class="badge badge-degree ${isSelected ? 'bg-success text-white' : 'bg-info text-dark'} text-uppercase">${H.Esc(row.school_name)}</span>
                         ${isSubmitted && isSelected ? '<span class="badge bg-success position-absolute top-0 end-0 m-3"><i class="cil-check"></i> Terkonfirmasi</span>' : ''}
-                        <h5 class="card-major">${row.grade_name}</h5>
+                        <h5 class="card-major">${H.Esc(row.grade_name)}</h5>
                         <div class="mt-3">
                             <div class="card-detail">
-                                <i class="cil-sun small"></i> Jenis Kelas: <strong>${row.track_name}</strong>
+                                <i class="cil-sun small"></i> Jenis Kelas: <strong>${H.Esc(row.track_name)}</strong>
                             </div>
                             <div class="card-detail">
-                                <i class="cil-stream small"></i> Program Pendidikan: <strong>${row.program_name || '-'}</strong>
+                                <i class="cil-stream small"></i> Program Pendidikan: <strong>${H.Esc(row.program_name || '-')}</strong>
                             </div>
                             <div class="card-detail">
-                                <i class="cil-user small"></i> Jenis Pendaftaran: <strong>${row.applicant_type_name || '-'}</strong>
+                                <i class="cil-user small"></i> Jenis Pendaftaran: <strong>${H.Esc(row.applicant_type_name || '-')}</strong>
                             </div>
                             <div class="card-detail">
-                                <i class="cil-people small"></i> Kuota: <strong>${row.quota || '-'}</strong>
+                                <i class="cil-people small"></i> Kuota: <strong>${H.Esc(row.quota || '-')}</strong>
                             </div>
                             <div class="card-detail">
-                                <i class="cil-credit-card small"></i> Biaya: <strong>${fee}</strong>
+                                <i class="cil-credit-card small"></i> Biaya: <strong>${H.Esc(fee)}</strong>
                             </div>
                         </div>
                     </div>

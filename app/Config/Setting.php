@@ -38,8 +38,8 @@ class Setting extends BaseConfig
     public const bool ALLOW_REMEMBERING = true;
 
     /**
-     * Duration (in seconds) to remember a user login.
-     * Default: 30 seconds.
+     * Duration (in days) to remember a user login.
+     * Default: 30 days.
      */
     public const int REMEMBER_LENGTH = 30;
 

@@ -7,7 +7,7 @@
     <div class="card-body" id="EDUCATION_PROGRAMS"></div>
 </div>
 <script>
-    DS.Branches = H.StrToObject('<?=$branches?>');
+    DS.Branches = <?= $branches ?>;
     const _grid = "EDUCATION_PROGRAMS", _form = _grid + "_FORM";
 
     const _categories = {"MAJOR": "Jurusan", "SPECIALIZATION": "Peminatan", "VOCATIONAL_PROGRAM": "Program Keahlian", "SPECIAL_PROGRAM": "Program Khusus"};
@@ -27,7 +27,7 @@
                 title: "Cabang Sekolah",
                 field: "branch_id",
                 formatter: function (row) {
-                    return DS.Branches[row.branch_id];
+                    return H.Esc(DS.Branches[row.branch_id]);
                 }
             },
             {title: "Kode", field: "code"},
@@ -36,7 +36,7 @@
                 title: "Kategori",
                 field: "category",
                 formatter: function (row) {
-                    return _categories[row.category] || row.category;
+                    return H.Esc(_categories[row.category] || row.category);
                 }
             },
         ],

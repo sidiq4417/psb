@@ -295,7 +295,7 @@ CREATE TABLE `application_settings` (
 
 LOCK TABLES `application_settings` WRITE;
 /*!40000 ALTER TABLE `application_settings` DISABLE KEYS */;
-INSERT INTO `application_settings` VALUES (1,'Nama Instansi',NULL,'Jl. Pendidikan No. 1 Kel. Karang Raharja, Kec. Cikarang Utara Kab. Bekasi, Jawa Barat','info@sekolahku.web.id','+62-21 1234 5678','+62 813-1234-5678',NULL,'Asia/Jakarta',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,3,'2026-08-15 17:19:04',NULL);
+INSERT INTO `application_settings` VALUES (1,'Pondok Pesantren Tahfidzul Qur''an Al-Fath Solo Baru','Penerimaan Santri Baru (PSB) Online','Solo Baru, Sukoharjo, Jawa Tengah','info@alfathsolobaru.com',NULL,NULL,'https://alfathsolobaru.com','Asia/Jakarta',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,3,'2026-08-15 17:19:04',NULL);
 /*!40000 ALTER TABLE `application_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1116,7 +1116,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'user:admin@sekolah.sch.id','admin@sekolah.sch.id','$2y$12$b27qocjFCtH0fqrJdPZOwuC60rZjyZ64.d2rRvHHTgw0.U/cl7fDa','Administrator',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL,NULL,'Jl. Pendidikan No. 1 Kel. Karang Raharja, Kec. Cikarang Utara Kab. Bekasi, Jawa Barat 17550 Indonesia',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,0,0,1,NULL,0,0,NULL,NULL,NULL,'','',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,'2026-08-15 17:19:03',NULL,NULL,NULL,'2026-08-15 17:19:03',0,0,0,0);
+INSERT INTO `users` VALUES (1,'user:admin@alfathsolobaru.com','admin@alfathsolobaru.com','$2y$12$w8utq72b2t0DFwa8aTES9uXem9qTqd2j4h4YSEkHMNiog8sKHA.5W','Administrator',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL,NULL,'Solo Baru, Sukoharjo, Jawa Tengah',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,0,0,1,NULL,0,0,NULL,NULL,NULL,'','',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,'2026-08-15 17:19:03',NULL,NULL,NULL,'2026-08-15 17:19:03',0,0,0,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 

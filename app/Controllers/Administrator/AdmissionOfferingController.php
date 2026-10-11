@@ -152,15 +152,20 @@ class AdmissionOfferingController extends BaseController
     {
         $validation = service('validation');
 
+        $exists = static fn(string $label, string $table): array => [
+            'label' => $label,
+            'rules' => 'required|is_natural_no_zero|is_not_unique[' . $table . '.id]',
+            'errors' => ['is_not_unique' => $label . ' tidak ditemukan.'],
+        ];
         $validation->setRules([
-            'admission_period_id' => ['label' => 'Periode', 'rules' => 'required|is_natural_no_zero'],
-            'entry_grade_id' => ['label' => 'Tingkat Masuk', 'rules' => 'required|is_natural_no_zero'],
-            'education_track_id' => ['label' => 'Jenis Kelas', 'rules' => 'required|is_natural_no_zero'],
+            'admission_period_id' => $exists('Periode', 'admission_periods'),
+            'entry_grade_id' => $exists('Tingkat Masuk', 'entry_grades'),
+            'education_track_id' => $exists('Jenis Kelas', 'education_tracks'),
             'education_program_id' => ['label' => 'Program Pendidikan', 'rules' => 'permit_empty|is_natural'],
-            'applicant_type_id' => ['label' => 'Jenis Pendaftaran', 'rules' => 'required|is_natural_no_zero'],
-            'admission_pathway_id' => ['label' => 'Jalur Masuk', 'rules' => 'required|is_natural_no_zero'],
-            'quota' => ['label' => 'Kuota', 'rules' => 'required|is_natural'],
-            'sort_order' => ['label' => 'Urutan', 'rules' => 'permit_empty|is_natural'],
+            'applicant_type_id' => $exists('Jenis Pendaftaran', 'applicant_types'),
+            'admission_pathway_id' => $exists('Jalur Masuk', 'admission_pathways'),
+            'quota' => ['label' => 'Kuota', 'rules' => 'required|is_natural|less_than_equal_to[1000000]'],
+            'sort_order' => ['label' => 'Urutan', 'rules' => 'permit_empty|is_natural|less_than_equal_to[1000000]'],
         ]);
 
         if (!$validation->run($this->request->getPost())) {
@@ -178,6 +183,20 @@ class AdmissionOfferingController extends BaseController
         $entryGradeModel = new EntryGradeModel();
         $entryGrade = $entryGradeModel->find($entry_grade_id);
         $derived_branch_id = (int)($entryGrade->branch_id ?? 0);
+        if ($derived_branch_id <= 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['entry_grade_id' => 'Tingkat Masuk belum terhubung dengan sekolah.'],
+            ]);
+        }
+
+        $education_program_id = (int)($this->request->getPost('education_program_id') ?? 0);
+        if ($education_program_id > 0 && new EducationProgramModel()->find($education_program_id) === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['education_program_id' => 'Program Pendidikan tidak ditemukan.'],
+            ]);
+        }
 
         $admission_period_id = (int)$this->request->getPost('admission_period_id');
         $data = [
@@ -185,7 +204,7 @@ class AdmissionOfferingController extends BaseController
             'branch_id' => $derived_branch_id,
             'entry_grade_id' => $entry_grade_id,
             'education_track_id' => (int)$this->request->getPost('education_track_id'),
-            'education_program_id' => (int)($this->request->getPost('education_program_id') ?? 0),
+            'education_program_id' => $education_program_id,
             'applicant_type_id' => (int)$this->request->getPost('applicant_type_id'),
             'admission_pathway_id' => (int)$this->request->getPost('admission_pathway_id'),
             'quota' => (int)$this->request->getPost('quota'),

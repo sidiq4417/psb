@@ -26,7 +26,31 @@ use JsonException;
  */
 class StudentController extends BaseController
 {
+    /**
+     * Database table used by DataTrait::form().
+     *
+     * @var string
+     */
+    protected string $table = 'registrations';
+
+    /**
+     * Primary key of the registration being edited.
+     *
+     * @var int
+     */
+    protected int $id = 0;
+
     use DataTrait;
+
+    /**
+     * StudentController Constructor.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->id = (int)(service('request')->getVar('id') ?? 0);
+    }
 
     /**
      * Render the student admission page.
@@ -40,7 +64,7 @@ class StudentController extends BaseController
         $model = new AdmissionOfferingModel();
 
         $vars = [
-            'title' => 'Data Calon Mahasiswa',
+            'title' => 'Data Calon Siswa',
             'query' => $model->findById($offering_id),
             'offering_id' => $offering_id,
             'subject_grade_requirements' => toJson($this->getSubjectGradeRequirements($offering_id)),
@@ -84,6 +108,7 @@ class StudentController extends BaseController
             $row->subject_grade_requirements = json_encode($grades);
 
             $docs = $db->table('registration_documents')
+                ->select('registration_id, document_id, file AS file_name, verified')
                 ->where('registration_id', $row->record_id)
                 ->get()
                 ->getResult();
@@ -111,7 +136,7 @@ class StudentController extends BaseController
             $subject_grades[] = [
                 'subject_id' => (int) $row->subject_id,
                 'subject_name' => $row->subject_name,
-                'threshold_score' => (int) $row->threshold_score,
+                'threshold_score' => (float) $row->threshold_score,
             ];
         }
 
@@ -135,20 +160,54 @@ class StudentController extends BaseController
             ]);
         }
 
-        $updateData = [
-            'submitted' => $this->request->getVar('submitted') ? 1 : 0,
-            'submitted_at' => $this->request->getVar('submitted_at') ?? null,
-            'transfer_proof_verified' => $this->request->getVar('transfer_proof_verified') ? 1 : 0,
-            'transfer_proof_verified_at' => $this->request->getVar('transfer_proof_verified_at') ?? null,
-            'selection_status' => $this->request->getVar('selection_status') ?? null,
-            'selection_notes' => $this->request->getVar('selection_notes') ?? null,
+        $statuses = implode(',', array_map('strval', array_keys(registration_status())));
+        $validation = service('validation');
+        $validation->setRules([
+            'submitted_at' => ['label' => 'Tanggal Konfirmasi Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'transfer_proof_verified_at' => ['label' => 'Tanggal Verifikasi Biaya Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'selection_status' => [
+                'label' => 'Status Seleksi',
+                'rules' => 'permit_empty|in_list[' . $statuses . ']',
+                'errors' => ['in_list' => 'Status seleksi tidak valid.'],
+            ],
+            'selection_notes' => ['label' => 'Catatan Seleksi', 'rules' => 'permit_empty|max_length[5000]'],
+        ]);
+
+        $input = [
+            'submitted_at' => substr(trim((string)$this->request->getVar('submitted_at')), 0, 10),
+            'transfer_proof_verified_at' => substr(trim((string)$this->request->getVar('transfer_proof_verified_at')), 0, 10),
+            'selection_status' => (string)$this->request->getVar('selection_status'),
+            'selection_notes' => (string)$this->request->getVar('selection_notes'),
         ];
+        if (!$validation->run($input)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors(),
+            ]);
+        }
+
+        // FormBuilder posts checkbox values as "true"/"false".
+        $updateData = [
+            'submitted' => filter_var($this->request->getVar('submitted'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
+            'submitted_at' => $input['submitted_at'] !== '' ? $input['submitted_at'] : null,
+            'transfer_proof_verified' => filter_var($this->request->getVar('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
+            'transfer_proof_verified_at' => $input['transfer_proof_verified_at'] !== '' ? $input['transfer_proof_verified_at'] : null,
+            'updated_by' => (int)session()->get('actor'),
+        ];
+
+        // Selection fields are hidden (and not posted) until the registration is confirmed.
+        if ($this->request->getVar('selection_status') !== null) {
+            $updateData['selection_status'] = $input['selection_status'] !== '' ? $input['selection_status'] : '0';
+        }
+        if ($this->request->getVar('selection_notes') !== null) {
+            $updateData['selection_notes'] = $input['selection_notes'];
+        }
 
         $db->table('registrations')->where('id', $id)->update($updateData);
         return $this->response->setJSON([
             'id' => $id,
-            'success' => $db->affectedRows() > 0,
-            'message' => 'Updated successfully.',
+            'success' => true,
+            'message' => 'Data pendaftaran berhasil diperbarui.',
         ]);
     }
 
@@ -215,6 +274,7 @@ class StudentController extends BaseController
         $details = $registration->findDetailsById($id);
 
         $app_settings = $db->table('application_settings')->where('id', 1)->get()->getRow();
+        $shared_number = (string) ($reg->registration_number ?? '-');
 
         $html = view('students/registration-form', [
             'student' => $student,
@@ -223,14 +283,15 @@ class StudentController extends BaseController
             'applicant_types' => applicant_types(),
             'admission_pathways' => admission_pathways(),
             'educations' => educations(),
-            'app_settings' => $app_settings
+            'app_settings' => $app_settings,
+            'shared_number' => $shared_number,
         ]);
 
         $pdf = new PDF();
-        $file_name = 'FORMULIR-PENERIMAAN-MAHASISWA-BARU';
-        $file_name .= '-' . $reg->registration_number . '-' . time() . '.pdf';
+        $file_name = 'FORMULIR-PENDAFTARAN';
+        $file_name .= '-' . $shared_number . '-' . time() . '.pdf';
 
-        return $this->response->setBody($pdf->render($html, $reg->registration_number, $file_name));
+        return $this->response->setBody($pdf->render($html, $shared_number, $file_name));
     }
 
     /**
@@ -239,17 +300,15 @@ class StudentController extends BaseController
      * @param string $file_name The name of the file to download.
      * @return ResponseInterface|null The download response or null if not found.
      */
-    public function download(string $file_name): ?ResponseInterface
+    public function download(string $file_name = ''): ?ResponseInterface
     {
-        $safe_name = basename($file_name);
-        $path = FCPATH . 'uploads/';
-        $file_path = $path . $safe_name;
+        $file_path = find_registration_file($file_name);
 
-        if (!is_file($file_path)) {
+        if ($file_path === null) {
             throw PageNotFoundException::forPageNotFound();
         }
 
-        return $this->response->download($file_path, null)->setFileName($safe_name);
+        return $this->response->download($file_path, null)->setFileName(basename($file_path));
     }
 
     /**
@@ -261,7 +320,18 @@ class StudentController extends BaseController
     {
         $id = (int) ($this->request->getVar('id') ?? 0);
         $subject_id = (int) ($this->request->getVar('subject_id') ?? 0);
-        $score = (int) ($this->request->getVar('score') ?? 0);
+        $raw_score = $this->request->getVar('score');
+        $raw_score = is_scalar($raw_score) ? str_replace(',', '.', trim((string) $raw_score)) : '';
+
+        // registration_subject_grades.score is DECIMAL(10,2): 0-100 with at most 2 decimals.
+        if (preg_match('/^[0-9]{1,3}(\.[0-9]{1,2})?$/', $raw_score) !== 1 || (float) $raw_score > 100) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Nilai harus berupa angka 0-100 (maksimal 2 angka desimal).',
+                'errors' => ['score' => 'Nilai harus berupa angka 0-100 (maksimal 2 angka desimal).'],
+            ]);
+        }
+        $score = round((float) $raw_score, 2);
 
         $db = Database::connect();
         $data = $db->table('registrations')->where('id', $id)->get()->getRow();
@@ -269,6 +339,13 @@ class StudentController extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Data pendaftaran tidak ditemukan.'
+            ]);
+        }
+
+        if ($subject_id <= 0 || $db->table('subjects')->where('id', $subject_id)->countAllResults() === 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Mata pelajaran tidak ditemukan.'
             ]);
         }
 
@@ -296,7 +373,7 @@ class StudentController extends BaseController
                 $masterReqs = $this->getSubjectGradeRequirements($offering_id);
                 foreach ($masterReqs as $master) {
                     if ((int) $master['subject_id'] === $subject_id) {
-                        $threshold_score = (int) $master['threshold_score'];
+                        $threshold_score = (float) $master['threshold_score'];
                         break;
                     }
                 }

@@ -1,12 +1,27 @@
+<?php
+$sidebar_institution = trim((string) (session()->get('institution_name') ?? ''));
+$sidebar_branding = config('Branding');
+$sidebar_name = $sidebar_branding->shortName !== '' ? $sidebar_branding->shortName : $sidebar_institution;
+$sidebar_logo = basename((string) (session()->get('logo') ?? 'logo.png'));
+$sidebar_logo_path = ($sidebar_logo === '' || $sidebar_logo === 'logo.png') ? base_url('logo.png') : base_url('upload/' . rawurlencode($sidebar_logo));
+?>
 <div class="sidebar sidebar-fixed sidebar-dark sidebar-narrow-unfoldable border-end" id="sidebar">
     <div class="sidebar-header border-bottom">
         <div class="sidebar-brand">
-            <h5 class="sidebar-brand-full fw-bold">
-                SPMB
-            </h5>
-            <svg class="sidebar-brand-narrow" width="20" height="20">
-                <use xlink:href="<?= base_url('coreui-icons/svg/free.svg#cil-flip-to-back') ?>"></use>
-            </svg>
+            <div class="sidebar-brand-full">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="<?= esc($sidebar_logo_path, 'attr') ?>" alt="<?= esc('Logo ' . $sidebar_institution, 'attr') ?>"
+                         width="36" height="36" class="flex-shrink-0" style="object-fit: contain;">
+                    <span class="lh-sm" style="max-width: 170px;" title="<?= esc($sidebar_institution, 'attr') ?>">
+                        <span class="d-block fw-bold small"><?= esc($sidebar_name !== '' ? $sidebar_name : $sidebar_branding->productName) ?></span>
+                        <?php if ($sidebar_name !== ''): ?>
+                            <span class="d-block sidebar-brand-tagline"><?= esc($sidebar_branding->productName) ?></span>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </div>
+            <img class="sidebar-brand-narrow" src="<?= esc($sidebar_logo_path, 'attr') ?>" alt="" width="28" height="28"
+                 style="object-fit: contain;">
         </div>
         <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close"
             onclick="coreui.Sidebar.getInstance(document.querySelector(&quot;#sidebar&quot;)).toggle()"></button>
@@ -31,12 +46,16 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-0" href="<?= site_url('logout') ?>">
-                    <svg class="nav-icon">
-                        <use xlink:href="<?php echo base_url('svg/free.svg#cil-account-logout') ?>"></use>
-                    </svg>
-                    Keluar
-                </a>
+                <?php // Logging out changes state, so it is a POST request carrying the CSRF token. ?>
+                <form action="<?= site_url('logout') ?>" method="post" class="m-0">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="nav-link rounded-0 w-100 text-start">
+                        <svg class="nav-icon">
+                            <use xlink:href="<?php echo base_url('svg/free.svg#cil-account-logout') ?>"></use>
+                        </svg>
+                        Keluar
+                    </button>
+                </form>
             </li>
             <li class="nav-title">Data Akademik</li>
             <li class="nav-item">
@@ -107,7 +126,7 @@
                     Wilayah
                 </a>
             </li>
-            <li class="nav-title">Penerimaan Murid Baru</li>
+            <li class="nav-title">Penerimaan Santri Baru</li>
             <li class="nav-item">
                 <a class="nav-link rounded-0" href="<?= site_url('administrator/admission-pathways') ?>">
                     <svg class="nav-icon">
@@ -157,7 +176,7 @@
                         <use xlink:href="<?php echo base_url('svg/free.svg#cil-library') ?>"></use>
                     </svg>
                     Persyaratan Umum
-                </a>ok
+                </a>
             </li>
             <?php if (session()->get('is_admin')) { ?>
                 <li class="nav-title">Laporan</li>
@@ -306,12 +325,16 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-0" href="<?= site_url('logout') ?>">
-                    <svg class="nav-icon">
-                        <use xlink:href="<?php echo base_url('svg/free.svg#cil-account-logout') ?>"></use>
-                    </svg>
-                    Keluar
-                </a>
+                <?php // Logging out changes state, so it is a POST request carrying the CSRF token. ?>
+                <form action="<?= site_url('logout') ?>" method="post" class="m-0">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="nav-link rounded-0 w-100 text-start">
+                        <svg class="nav-icon">
+                            <use xlink:href="<?php echo base_url('svg/free.svg#cil-account-logout') ?>"></use>
+                        </svg>
+                        Keluar
+                    </button>
+                </form>
             </li>
         <?php } ?>
     </ul>

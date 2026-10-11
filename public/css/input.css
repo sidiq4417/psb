@@ -2,6 +2,23 @@
 
 @theme {
     --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+
+    /* Brand colours from the PPTQ Al-Fath Solo Baru logo: green #85C226 (brand-400) and yellow #FFF500 (accent-300).
+       Use brand-600 or darker behind white text; yellow is an accent on dark green only. */
+    --color-brand-50: #f4faeb;
+    --color-brand-100: #e5f3cf;
+    --color-brand-200: #cce6a1;
+    --color-brand-300: #a9d467;
+    --color-brand-400: #85c226;
+    --color-brand-500: #5f9c1f;
+    --color-brand-600: #3f7d1c;
+    --color-brand-700: #2e6b12;
+    --color-brand-800: #245410;
+    --color-brand-900: #1b400d;
+    --color-brand-950: #0f2607;
+    --color-accent-100: #fffbc2;
+    --color-accent-200: #fff87a;
+    --color-accent-300: #fff500;
 }
 
 body {

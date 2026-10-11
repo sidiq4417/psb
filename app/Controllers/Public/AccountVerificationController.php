@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Controllers\Public;
 
 use App\Controllers\BaseController;
+use App\Services\AccountVerificationService;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Database;
-use Config\Services;
-use Exception;
 
 /**
  * Class AccountVerificationController
@@ -22,47 +21,34 @@ class AccountVerificationController extends BaseController
     /**
      * Verify an account using an encrypted token.
      *
+     * The token carries the user ID, email and expiry time (see AccountVerificationService).
+     * It is rejected when it cannot be decrypted, has expired, or the account email has
+     * changed since the link was sent.
+     *
      * @param string $encrypted The encrypted verification token.
      * @return ResponseInterface|string Redirect to login on success or unauthorized view on failure.
      */
     public function index(string $encrypted = ''): ResponseInterface|string
     {
-        $encrypter = Services::encrypter();
-
-        // Validate token format
-        if ($encrypted === '' || !ctype_xdigit($encrypted)) {
-            return $this->unauthorized('Invalid verification link.');
+        $user_data = new AccountVerificationService()->findUserByToken($encrypted);
+        if (!$user_data) {
+            return $this->unauthorized('Tautan verifikasi tidak valid atau sudah kedaluwarsa. Silakan masuk dengan email dan kata sandi Anda untuk menerima tautan verifikasi yang baru.');
         }
 
-        try {
-            // Decrypt token to get user ID
-            $decrypted = $encrypter->decrypt(hex2bin($encrypted));
-            $user_id = (int)$decrypted;
-
-            if ($user_id <= 0) {
-                return $this->unauthorized('Invalid verification link.');
-            }
-
-            // Load user data
-            $db = Database::connect();
-            $user_data = $db->table('users')->where('id', $user_id)->get()->getRow();
-            if (!$user_data) {
-                return $this->unauthorized('User not found.', '404 Not Found');
-            }
-            if (!$user_data->account_verified) {
-                $db->table('users')
-                    ->where('id', $user_id)
-                    ->update([
-                        'account_verified' => true,
-                        'account_verified_at' => date('Y-m-d H:i:s'),
-                        'account_verified_by' => $user_id,
-                    ]);
-            }
-            return redirect()->to('/');
-        } catch (Exception) {
-            // Handle decryption or other errors
-            return $this->unauthorized('Verification failed or link is invalid.');
+        if (filter_var($user_data->account_verified, FILTER_VALIDATE_BOOLEAN)) {
+            return redirect()->to('/')->with('success', 'Akun Anda sudah aktif. Silakan masuk.');
         }
+
+        $user_id = (int) $user_data->id;
+        Database::connect()->table('users')
+            ->where('id', $user_id)
+            ->update([
+                'account_verified' => true,
+                'account_verified_at' => date('Y-m-d H:i:s'),
+                'account_verified_by' => $user_id,
+            ]);
+
+        return redirect()->to('/')->with('success', 'Akun Anda berhasil diaktifkan. Silakan masuk.');
     }
 
     /**
@@ -75,7 +61,7 @@ class AccountVerificationController extends BaseController
     private function unauthorized(string $message, string $code = '400 Bad Request'): string
     {
         return view('public/unauthorized', [
-            'title' => 'Unauthorized',
+            'title' => 'Verifikasi Gagal',
             'error_code' => $code,
             'error_message' => $message
         ]);

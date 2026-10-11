@@ -6,7 +6,7 @@
             <select class="form-select form-select-sm" name="admission_year">
                 <option value="0">Semua Tahun Penerimaan</option>
                 <?php foreach ($admission_years as $year) { ?>
-                    <option value="<?= $year ?>" <?= $year == $active_admission_year ? 'selected' : '' ?>><?= $year ?></option>
+                    <option value="<?= (int) $year ?>" <?= (int) $year === (int) $active_admission_year ? 'selected' : '' ?>><?= (int) $year ?></option>
                 <?php } ?>
             </select>
             <label class="form-label fw-bolder text-dark">Tahun Penerimaan</label>
@@ -17,7 +17,7 @@
             <select class="form-select form-select-sm" name="selection_status">
                 <option value="">Semua Status Seleksi</option>
                 <?php foreach (registration_status() as $key => $val) { ?>
-                    <option value="<?= $key ?>"><?= $val ?></option>
+                    <option value="<?= esc((string) $key, 'attr') ?>"><?= esc($val) ?></option>
                 <?php } ?>
             </select>
             <label class="form-label fw-bolder text-dark">Status Seleksi</label>
@@ -31,7 +31,7 @@
                 if (isset($schools)) {
                     $objs = json_decode($schools);
                     foreach ($objs as $id => $name) {
-                        echo '<option value="' . $id . '">' . $name . '</option>';
+                        echo '<option value="' . esc((string) $id, 'attr') . '">' . esc((string) $name) . '</option>';
                     }
                 }
                 ?>
@@ -47,7 +47,7 @@
                 if (isset($entry_grades)) {
                     $objs = json_decode($entry_grades);
                     foreach ($objs as $id => $name) {
-                        echo '<option value="' . $id . '">' . $name . '</option>';
+                        echo '<option value="' . esc((string) $id, 'attr') . '">' . esc((string) $name) . '</option>';
                     }
                 }
                 ?>
@@ -63,7 +63,7 @@
                 if (isset($education_tracks)) {
                     $objs = json_decode($education_tracks);
                     foreach ($objs as $id => $name) {
-                        echo '<option value="' . $id . '">' . $name . '</option>';
+                        echo '<option value="' . esc((string) $id, 'attr') . '">' . esc((string) $name) . '</option>';
                     }
                 }
                 ?>
@@ -79,7 +79,7 @@
                 if (isset($education_programs)) {
                     $objs = json_decode($education_programs);
                     foreach ($objs as $id => $name) {
-                        echo '<option value="' . $id . '">' . $name . '</option>';
+                        echo '<option value="' . esc((string) $id, 'attr') . '">' . esc((string) $name) . '</option>';
                     }
                 }
                 ?>
@@ -92,6 +92,18 @@
     <div class="card-body" id="REGISTRANTS"></div>
 </div>
 <script>
+
+    /**
+     * Reload the grid using the filters currently selected above it.
+     */
+    async function reloadRegistrants() {
+        const value = (name, fallback) => {
+            const el = document.querySelector(`[name="${name}"]`);
+            return el ? el.value : fallback;
+        };
+        await render(value("admission_year", 0), value("selection_status", ""), value("school_id", 0),
+            value("entry_grade_id", 0), value("education_track_id", 0), value("education_program_id", 0));
+    }
 
     document.addEventListener("DOMContentLoaded", async () => {
         const admission_year_select = document.querySelector('[name="admission_year"]');
@@ -120,19 +132,22 @@
 
         await reloadData();
     });
-    DS.Gender = H.StrToObject('<?= $gender ?>');
-    DS.Countries = H.StrToObject('<?= $countries ?>');
-    DS.Religions = H.StrToObject('<?= $religions ?>');
-    DS.Residences = H.StrToObject('<?= $residences ?>');
-    DS.Transportations = H.StrToObject('<?= $transportations ?>');
-    DS.Educations = H.StrToObject('<?= $educations ?>');
-    DS.Occupations = H.StrToObject('<?= $occupations ?>');
-    DS.Incomes = H.StrToObject('<?= $incomes ?>');
-    DS.RegistrationStatuses = H.StrToObject('<?= $registration_statuses ?>');
+    DS.Gender = <?= $gender ?>;
+    DS.Countries = <?= $countries ?>;
+    DS.Religions = <?= $religions ?>;
+    DS.Residences = <?= $residences ?>;
+    DS.Transportations = <?= $transportations ?>;
+    DS.Educations = <?= $educations ?>;
+    DS.Occupations = <?= $occupations ?>;
+    DS.Incomes = <?= $incomes ?>;
+    DS.RegistrationStatuses = <?= $registration_statuses ?>;
     const _grid = "REGISTRANTS", _form = _grid + "_FORM", _form2 = _grid + "_FORM2";
     const countryOptions = Object.assign({ 99: "Lainnya" }, DS.Countries);
     const REGION_URL = _BASE_URL + "administrator/registrants";
     const regionTokens = { bp: 0, ad: 0 };
+    // True while the saved regions are filled in: setting a value fires a change event,
+    // and the cascade would then clear the dependent fields (e.g. the subdistrict).
+    let regionsLoading = false;
     async function regionGet(url, params) {
         const body = new FormData();
         for (const key in params) body.set(key, params[key]);
@@ -197,17 +212,14 @@
         }
     }
     async function fetchData(url, params) {
-        const req = new Request(url, {
+        const res = await fetch(url, {
             method: "POST",
-            headers: new Headers({
+            headers: {
                 "Content-Type": "application/json"
-            }),
+            },
             body: params,
-            cache: "no-cache",
-            mode: "cors"
+            cache: "no-cache"
         });
-
-        const res = await fetch(req);
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         return res.json();
     }
@@ -253,7 +265,7 @@
                         case "6": color = "danger"; active = "chip-clickable"; break;
                         case "7": color = "success"; active = "chip-clickable"; break;
                     }
-                    return `<span class="chip chip-${color} ${active}">${status}</span>`;
+                    return `<span class="chip chip-${color} ${active}">${H.Esc(status)}</span>`;
                 },
                 styles: ["text-nowrap"]
             },
@@ -292,7 +304,7 @@
                 title: "Agama",
                 field: "religion_id",
                 formatter: function (row) {
-                    return DS.Religions[row.religion_id] || '';
+                    return H.Esc(DS.Religions[row.religion_id] || '');
                 },
                 hidden: true
             },
@@ -316,7 +328,7 @@
                 title: "Jenis Tinggal",
                 field: "residence_id",
                 formatter: function (row) {
-                    return DS.Residences[row.residence_id] || '';
+                    return H.Esc(DS.Residences[row.residence_id] || '');
                 },
                 hidden: true
             },
@@ -324,7 +336,7 @@
                 title: "Alat Transportasi",
                 field: "transportation_id",
                 formatter: function (row) {
-                    return DS.Transportations[row.transportation_id] || '';
+                    return H.Esc(DS.Transportations[row.transportation_id] || '');
                 },
                 hidden: true
             },
@@ -346,7 +358,7 @@
                 title: "Pendidikan Ayah",
                 field: "father_education_id",
                 formatter: function (row) {
-                    return DS.Educations[row.father_education_id] || '';
+                    return H.Esc(DS.Educations[row.father_education_id] || '');
                 },
                 hidden: true
             },
@@ -354,7 +366,7 @@
                 title: "Pekerjaan Ayah",
                 field: "father_occupation_id",
                 formatter: function (row) {
-                    return DS.Occupations[row.father_occupation_id] || '';
+                    return H.Esc(DS.Occupations[row.father_occupation_id] || '');
                 },
                 hidden: true
             },
@@ -362,7 +374,7 @@
                 title: "Penghasilan Ayah",
                 field: "father_income_id",
                 formatter: function (row) {
-                    return DS.Incomes[row.father_income_id] || '';
+                    return H.Esc(DS.Incomes[row.father_income_id] || '');
                 },
                 hidden: true
             },
@@ -373,7 +385,7 @@
                 title: "Pendidikan Ibu",
                 field: "mother_education_id",
                 formatter: function (row) {
-                    return DS.Educations[row.mother_education_id] || '';
+                    return H.Esc(DS.Educations[row.mother_education_id] || '');
                 },
                 hidden: true
             },
@@ -381,7 +393,7 @@
                 title: "Pekerjaan Ibu",
                 field: "mother_occupation_id",
                 formatter: function (row) {
-                    return DS.Occupations[row.mother_occupation_id] || '';
+                    return H.Esc(DS.Occupations[row.mother_occupation_id] || '');
                 },
                 hidden: true
             },
@@ -389,7 +401,7 @@
                 title: "Penghasilan Ibu",
                 field: "mother_income_id",
                 formatter: function (row) {
-                    return DS.Incomes[row.mother_income_id] || '';
+                    return H.Esc(DS.Incomes[row.mother_income_id] || '');
                 },
                 hidden: true
             },
@@ -400,7 +412,7 @@
                 title: "Pendidikan Wali",
                 field: "guardian_education_id",
                 formatter: function (row) {
-                    return DS.Educations[row.guardian_education_id] || '';
+                    return H.Esc(DS.Educations[row.guardian_education_id] || '');
                 },
                 hidden: true
             },
@@ -408,7 +420,7 @@
                 title: "Penghasilan Wali",
                 field: "guardian_income_id",
                 formatter: function (row) {
-                    return DS.Incomes[row.guardian_income_id] || '';
+                    return H.Esc(DS.Incomes[row.guardian_income_id] || '');
                 },
                 hidden: true
             },
@@ -416,7 +428,7 @@
                 title: "Pekerjaan Wali",
                 field: "guardian_occupation_id",
                 formatter: function (row) {
-                    return DS.Occupations[row.guardian_occupation_id] || '';
+                    return H.Esc(DS.Occupations[row.guardian_occupation_id] || '');
                 },
                 hidden: true
             },
@@ -479,8 +491,10 @@
     function viewStudentGrades(regId) {
         const row = DS.Registrants[regId];
         if (!row) return;
-        const grades = H.StrToObject(row.subject_grade_requirements);
-        if (!grades || !grades.length) { alert('Belum ada data nilai.'); return; }
+        const grades = (H.StrToObject(row.subject_grade_requirements) || []).map(function (g) {
+            return Object.assign({}, g, { score: +g.score || 0, threshold_score: +g.threshold_score || 0 });
+        });
+        if (!grades.length) { alert('Belum ada data nilai.'); return; }
         const total = grades.length;
         const filled = grades.filter(function (g) { return g.score > 0; }).length;
         const avg = filled > 0 ? Math.round(grades.reduce(function (sum, g) { return sum + (g.score || 0); }, 0) / total) : 0;
@@ -493,8 +507,8 @@
             const statusIcon = hasScore ? (meetThreshold ? 'cil-check-circle text-success' : 'cil-x-circle text-danger') : 'cil-minus text-muted';
             const statusLabel = hasScore ? (meetThreshold ? 'Lulus' : 'Tidak') : 'Belum';
             const borderClass = hasScore ? (meetThreshold ? 'border-success border-opacity-25' : 'border-danger border-opacity-10') : '';
-            const scoreBadge = hasScore ? '<span class="badge bg-' + (meetThreshold ? 'success' : 'danger') + ' bg-opacity-10 text-' + (meetThreshold ? 'success' : 'danger') + ' fs-6 px-3 py-1 rounded-pill fw-bold">' + g.score + '</span>' : '<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-pill">-</span>';
-            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + borderClass + '"><div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width:36px;height:36px;background:#f8fafc"><i class="' + statusIcon + ' fs-5"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + (g.subject_name || 'Mata Pelajaran #' + g.subject_id) + '</div><div class="text-muted small">Min. ' + (g.threshold_score || 0) + '</div></div>' + scoreBadge + '</div></div>';
+            const scoreBadge = hasScore ? '<span class="badge bg-' + (meetThreshold ? 'success' : 'danger') + ' bg-opacity-10 text-' + (meetThreshold ? 'success' : 'danger') + ' fs-6 px-3 py-1 rounded-pill fw-bold">' + H.Esc(g.score) + '</span>' : '<span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-pill">-</span>';
+            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + borderClass + '"><div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width:36px;height:36px;background:#f8fafc"><i class="' + statusIcon + ' fs-5"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + H.Esc(g.subject_name || 'Mata Pelajaran #' + g.subject_id) + '</div><div class="text-muted small">Min. ' + H.Esc(g.threshold_score || 0) + '</div></div>' + scoreBadge + '</div></div>';
         });
         html += '</div>';
         showModal('Nilai Calon Siswa', html);
@@ -503,23 +517,27 @@
     function viewStudentDocuments(regId) {
         const row = DS.Registrants[regId];
         if (!row) return;
-        const docs = H.StrToObject(row.document_requirements);
-        if (!docs || !docs.length) { alert('Belum ada data dokumen.'); return; }
+        const docs = (H.StrToObject(row.document_requirements) || []).slice();
+        if (row.transfer_proof) {
+            docs.push({ document_id: 0, document_name: 'Bukti Pembayaran', file_name: row.transfer_proof });
+        }
+        if (!docs.length) { alert('Belum ada data dokumen.'); return; }
         const total = docs.length;
         const uploaded = docs.filter(function (d) { return d.file_name; }).length;
         let html = '<div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-3 border"><div class="d-flex align-items-center justify-content-center rounded-3" style="width:48px;height:48px;background:#e8f1ff"><i class="cil-file fs-3 text-primary"></i></div><div><div class="fw-bold text-dark" style="font-size:0.9rem">Kelengkapan Dokumen</div><div class="text-muted small">' + uploaded + ' dari ' + total + ' dokumen telah diunggah</div></div><div class="ms-auto"><span class="badge bg-' + (uploaded === total ? 'success' : 'warning') + ' fs-6 px-3 py-2 rounded-pill">' + Math.round(uploaded / total * 100) + '%</span></div></div>';
         html += '<div class="row g-2">';
         docs.forEach(function (d) {
             const hasFile = d.file_name ? true : false;
-            const fileLink = hasFile ? '<a href="' + _BASE_URL + 'administrator/registrants/download/' + d.file_name + '" class="btn btn-sm btn-outline-primary rounded-2"><i class="cil-data-transfer-down me-1"></i>Download</a>' : '<span class="text-muted small fst-italic">Belum diunggah</span>';
+            const fileLink = hasFile ? '<a href="' + H.Esc(_BASE_URL + 'administrator/registrants/download/' + encodeURIComponent(d.file_name)) + '" class="btn btn-sm btn-outline-primary rounded-2"><i class="cil-data-transfer-down me-1"></i>Download</a>' : '<span class="text-muted small fst-italic">Belum diunggah</span>';
             const icon = hasFile ? 'cil-check-circle text-success' : 'cil-file text-muted';
-            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + (hasFile ? 'border-success border-opacity-25' : '') + '"><div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width:36px;height:36px;background:#f8fafc"><i class="' + icon + ' fs-5"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + (d.document_name || 'Dokumen #' + d.document_id) + '</div><div class="mt-1">' + fileLink + '</div></div></div></div>';
+            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + (hasFile ? 'border-success border-opacity-25' : '') + '"><div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width:36px;height:36px;background:#f8fafc"><i class="' + icon + ' fs-5"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + H.Esc(d.document_name || 'Dokumen #' + d.document_id) + '</div><div class="mt-1">' + fileLink + '</div></div></div></div>';
         });
         html += '</div>';
         showModal('Dokumen Calon Siswa', html);
     }
 
     async function viewEntranceExamScores(regId) {
+        regId = parseInt(regId, 10) || 0;
         const res = await fetchData(_BASE_URL + "administrator/registrants/entrance-exam-subjects", JSON.stringify({ reg_id: regId }));
         const subjects = res.subjects || [];
         const existing = res.existing_scores || [];
@@ -535,7 +553,7 @@
             const hasScore = val > 0;
             const meetThreshold = hasScore && val >= sub.threshold_score;
             const borderClass = hasScore ? (meetThreshold ? 'border-success border-opacity-25' : 'border-danger border-opacity-10') : '';
-            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + borderClass + '"><div class="flex-shrink-0" style="width:36px"><i class="cil-education fs-5 text-secondary"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + sub.subject + '</div><div class="text-muted small">Min. ' + sub.threshold_score + '</div></div><div style="width:90px"><input type="number" class="form-control form-control-sm text-center entrance-exam-input border-2 ' + (hasScore ? (meetThreshold ? 'border-success' : 'border-danger') : '') + '" data-reg-id="' + regId + '" data-subject-id="' + sub.subject_id + '" value="' + val + '" min="0" max="100" placeholder="0"></div></div></div>';
+            html += '<div class="col-md-6"><div class="d-flex align-items-center gap-2 p-3 border rounded-3 bg-white ' + borderClass + '"><div class="flex-shrink-0" style="width:36px"><i class="cil-education fs-5 text-secondary"></i></div><div class="flex-grow-1 min-w-0"><div class="fw-semibold text-dark text-truncate small">' + H.Esc(sub.subject) + '</div><div class="text-muted small">Min. ' + H.Esc(sub.threshold_score) + '</div></div><div style="width:90px"><input type="number" class="form-control form-control-sm text-center entrance-exam-input border-2 ' + (hasScore ? (meetThreshold ? 'border-success' : 'border-danger') : '') + '" data-reg-id="' + regId + '" data-subject-id="' + H.Esc(sub.subject_id) + '" value="' + H.Esc(val) + '" min="0" max="100" step="1" placeholder="0"></div></div></div>';
         });
         html += '</div>';
         html += '<div class="d-flex justify-content-end pt-2 border-top"><button class="btn btn-primary btn-sm rounded-2 px-4 fw-bold" onclick="saveAllEntranceScores(' + regId + ')"><i class="cil-save me-1"></i>Simpan Semua</button></div>';
@@ -550,7 +568,12 @@
             const score = inp.value;
             promises.push(fetchData(_BASE_URL + "administrator/registrants/update-entrance-exam-score", JSON.stringify({ reg_id: regId, subject_id: subjectId, score: score })));
         });
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
+        const failed = results.find(function (r) { return !r || !r.success; });
+        if (failed) {
+            Alert.error((failed && failed.errors && failed.errors.score) || 'Sebagian nilai ujian gagal disimpan.');
+            return;
+        }
 
         const total = inputs.length;
         const filled = Array.from(inputs).filter(function (inp) { return +inp.value > 0; }).length;
@@ -595,18 +618,9 @@
         beforeSave: (nv) => {
             nv.admission_year = document.querySelector('[name="admission_year"]').value;
         },
-        afterSave: async () => {
-            const year = document.querySelector('[name="admission_year"]').value;
-            await render(year);
-        },
-        afterDelete: async () => {
-            const year = document.querySelector('[name="admission_year"]').value;
-            await render(year);
-        },
-        afterRestore: async () => {
-            const year = document.querySelector('[name="admission_year"]').value;
-            await render(year);
-        }
+        afterSave: reloadRegistrants,
+        afterDelete: reloadRegistrants,
+        afterRestore: reloadRegistrants
     });
 
     new FormBuilder(_form2, {
@@ -693,21 +707,19 @@
             values.password = '';
         },
         onShow: async (values, fb) => {
-            await populateRegions(fb, "birth_place_", values.birth_place_country_id, values.birth_place_province_id, values.birth_place_district_id, null);
-            await populateRegions(fb, "address_", values.address_country_id, values.address_province_id, values.address_district_id, values.address_subdistrict_id);
+            regionsLoading = true;
+            try {
+                await populateRegions(fb, "birth_place_", values.birth_place_country_id, values.birth_place_province_id, values.birth_place_district_id, null);
+                await populateRegions(fb, "address_", values.address_country_id, values.address_province_id, values.address_district_id, values.address_subdistrict_id);
+            } finally {
+                regionsLoading = false;
+            }
         },
         onFieldChange: (field, value, fb) => {
+            if (regionsLoading) return;
             cascadeStep(fb, field, value);
         },
-        afterSave: async () => {
-            const year = document.querySelector('[name="admission_year"]').value;
-            const selection_status = document.querySelector('[name="selection_status"]').value;
-            const school_id = document.querySelector('[name="school_id"]').value;
-            const entry_grade_id = document.querySelector('[name="entry_grade_id"]').value;
-            const education_track_id = document.querySelector('[name="education_track_id"]').value;
-            const education_program_id = document.querySelector('[name="education_program_id"]').value;
-            await render(year, selection_status, school_id, entry_grade_id, education_track_id, education_program_id);
-        }
+        afterSave: reloadRegistrants
     });
 
     async function updateSubjectScore(e, id, subject_id) {

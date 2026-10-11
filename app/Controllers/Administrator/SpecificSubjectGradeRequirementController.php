@@ -80,6 +80,34 @@ class SpecificSubjectGradeRequirementController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        $rules = [
+            'admission_offering_id' => [
+                'label' => 'Pembukaan Pendaftaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[admission_offerings.id]',
+                'errors' => ['is_not_unique' => 'Pembukaan Pendaftaran tidak ditemukan.'],
+            ],
+            'subject_id' => [
+                'label' => 'Mata Pelajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[subjects.id]',
+                'errors' => ['is_not_unique' => 'Mata Pelajaran tidak ditemukan.'],
+            ],
+            'threshold_score' => [
+                'label' => 'Nilai Minimum',
+                'rules' => ['required', 'regex_match[/^[0-9]{1,3}(\\.[0-9]{1,2})?$/]', 'less_than_equal_to[100]'],
+                'errors' => [
+                    'regex_match' => 'Nilai Minimum harus berupa angka 0-100 (maksimal 2 angka desimal).',
+                    'less_than_equal_to' => 'Nilai Minimum harus berupa angka 0-100 (maksimal 2 angka desimal).',
+                ],
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
         $id = (int)($this->request->getPost('id') ?? 0);
         $model = new SubjectGradeRequirementModel();
         $actor = (int)session()->get('actor');
@@ -88,7 +116,7 @@ class SpecificSubjectGradeRequirementController extends BaseController
         $data = [
             'admission_offering_id' => $admission_offering_id,
             'subject_id' => $subject_id,
-            'threshold_score' => (float)$this->request->getPost('threshold_score'),
+            'threshold_score' => round((float)$this->request->getPost('threshold_score'), 2),
         ];
         $unique_id = 'offering_subject_grade_requirement:' . $admission_offering_id . ':' . $subject_id;
 

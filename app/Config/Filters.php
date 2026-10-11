@@ -132,7 +132,16 @@ class Filters extends BaseFilters
                 'forgot-password/*',
                 'send-password-reset-link',
                 'reset-password',
-                'reset-password/*'
+                'reset-password/*',
+                // Authenticated areas (every POST route lives under these prefixes).
+                // The front-end sends the token in the X-CSRF-TOKEN header (public/js/App.js).
+                'dashboard',
+                'dashboard/*',
+                'logout',
+                'administrator',
+                'administrator/*',
+                'students',
+                'students/*',
             ]
         ],
         'throttle:5,60' => [

@@ -41,6 +41,65 @@ class UserModel extends Model
     protected $returnType = 'object';
 
     /**
+     * Validation rules for a person's full name (array style, so the regex is
+     * not split on "|"): letters, combining marks, spaces, dots, apostrophes
+     * and hyphens.
+     */
+    public const array NAME_RULES = ['required', 'min_length[3]', 'max_length[150]', 'regex_match[/^[\p{L}\p{M}\s.\'`-]+$/u]'];
+
+    /**
+     * Build the validation rule set for a person's name field.
+     *
+     * @param string $label    The field label shown in error messages.
+     * @param bool   $required False to allow an empty value (permit_empty).
+     * @return array{label: string, rules: array<int, string>, errors: array<string, string>}
+     */
+    public static function nameRule(string $label, bool $required = true): array
+    {
+        $rules = self::NAME_RULES;
+        if (!$required) {
+            $rules[0] = 'permit_empty';
+        }
+
+        return [
+            'label' => $label,
+            'rules' => $rules,
+            'errors' => [
+                'required' => $label . ' wajib diisi.',
+                'min_length' => $label . ' minimal 3 karakter.',
+                'max_length' => $label . ' maksimal 150 karakter.',
+                'regex_match' => $label . ' hanya boleh berisi huruf, spasi, titik, apostrof, dan tanda hubung.',
+            ],
+        ];
+    }
+
+    /**
+     * Columns that must never be sent to the browser.
+     */
+    private const array SECRET_FIELDS = [
+        'password', 'password_reset_token', 'password_reset_token_request_at',
+        'selector', 'hashed_validator', 'expiry',
+    ];
+
+    /**
+     * Find a user without credential/token columns, for views and JSON responses.
+     *
+     * @param int $id The user ID.
+     * @return object|null The user row without secret fields, or null if not found.
+     */
+    public function findWithoutSecrets(int $id): ?object
+    {
+        $row = $this->find($id);
+        if (!is_object($row)) {
+            return null;
+        }
+        foreach (self::SECRET_FIELDS as $field) {
+            unset($row->{$field});
+        }
+        return $row;
+    }
+
+    /**
      * Update a user record, automatically setting the updated_by field.
      *
      * @param int   $id   The user ID.

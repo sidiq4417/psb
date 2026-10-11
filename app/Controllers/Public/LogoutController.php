@@ -49,4 +49,17 @@ class LogoutController extends BaseController
         $this->auth->logout();
         return redirect()->to('/')->withCookies();
     }
+
+    /**
+     * Handle a GET request to the logout URL.
+     *
+     * Logging out is only done through a POST request with the CSRF token, so another
+     * site cannot log the user out with a plain link. A GET request goes to the dashboard.
+     *
+     * @return RedirectResponse Redirects to the dashboard.
+     */
+    public function redirectToDashboard(): RedirectResponse
+    {
+        return redirect()->to('/dashboard')->withCookies();
+    }
 }

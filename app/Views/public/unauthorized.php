@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><?= $error_code ?? '' ?></title>
+    <title><?= esc($error_code ?? '') ?></title>
+    <link rel="icon" href="<?= esc(base_url('favicon.ico'), 'attr') ?>">
     <style>
         body {
             margin: 0;
             height: 100vh;
-            background: #1a1a2e;
+            background: #1b400d;
             color: #eaeaea;
             display: flex;
             font-family: Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
@@ -37,8 +38,9 @@
 </head>
 <body>
 <div class="container">
-    <p class="error-code"><?= $error_code ?? '' ?></p>
-    <p class="error-message"><?= $error_message ?? '' ?></p>
+    <p class="error-code"><?= esc($error_code ?? '') ?></p>
+    <p class="error-message"><?= esc($error_message ?? '') ?></p>
+    <p><a href="<?= esc(base_url(), 'attr') ?>" style="color: #eaeaea;">Kembali ke halaman utama</a></p>
 </div>
 </body>
 </html>

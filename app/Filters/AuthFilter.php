@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Libraries\Auth;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -13,7 +14,10 @@ use CodeIgniter\HTTP\ResponseInterface;
  * Authentication and authorization filter for the application.
  *
  * Responsibilities:
- * - Ensures the user is logged in by checking the `actor` session key.
+ * - Ensures the user is logged in by checking the `actor` session key, or restores
+ *   the session from a valid "remember me" cookie.
+ * - Re-reads the user row on every request: a deleted account is logged out and
+ *   the session role flags are refreshed from the database.
  * - Validates user roles based on the first URI segment (e.g., administrator, student).
  * - Redirects to the login page if not authenticated.
  * - Redirects to the unauthorized page if the user does not have the required role.
@@ -35,10 +39,26 @@ class AuthFilter implements FilterInterface
     {
         $session = session();
 
-        // Check if user is logged in
-        if (!($session->has('actor') && $session->get('actor') > 0)) {
+        // Check if user is logged in (falls back to the "remember me" cookie)
+        if (!($session->has('actor') && $session->get('actor') > 0) && !new Auth()->isLoggedIn()) {
             return redirect()->to('/');
         }
+
+        // Re-check the account on every request so a deleted user loses access
+        // and role changes take effect without logging in again.
+        $user = db_connect()->table('users')
+            ->select('is_deleted, is_admin, is_operator, is_student')
+            ->where('id', (int)$session->get('actor'))
+            ->get()
+            ->getRow();
+        if ($user === null || (int)$user->is_deleted === 1) {
+            // Removes the remember-me token and cookie, clears the session keys and regenerates the ID.
+            new Auth()->logout();
+            return redirect()->to('/')->withCookies();
+        }
+        $session->set('is_admin', (bool)$user->is_admin);
+        $session->set('is_operator', (bool)$user->is_operator);
+        $session->set('is_student', (bool)$user->is_student);
 
         // If arguments are provided, use them to check specifically
         if (!empty($arguments)) {
@@ -61,6 +81,7 @@ class AuthFilter implements FilterInterface
             if (!$has_role) {
                 return redirect()
                     ->to('/unauthorized')
+                    ->withCookies()
                     ->with('error', 'Maaf, Anda tidak memiliki hak akses untuk halaman ini.');
             }
             return $request;
@@ -88,6 +109,7 @@ class AuthFilter implements FilterInterface
             if (!$hasAccess) {
                 return redirect()
                     ->to('/unauthorized')
+                    ->withCookies()
                     ->with('error', 'Maaf, Anda tidak memiliki hak akses untuk halaman ini.');
             }
         }

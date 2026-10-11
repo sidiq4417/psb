@@ -12,7 +12,7 @@ class RegistrationDocumentModel extends Model
     protected $primaryKey = 'id';
     protected $returnType = 'object';
     protected $allowedFields = [
-        'registration_id', 'document_id', 'file', 'file_path', 'verified', 'uploaded_at',
+        'registration_id', 'document_id', 'file', 'verified', 'uploaded_at',
     ];
     protected $useTimestamps = false;
     protected $dateFormat = 'datetime';
@@ -100,28 +100,29 @@ class RegistrationDocumentModel extends Model
      *
      * @param int    $registration_id The registration ID.
      * @param int    $document_id     The document type ID.
-     * @param string $file            The uploaded file path.
+     * @param string $file            The stored file name.
      * @param bool   $updateIfExists  Whether to update if the record already exists.
-     * @return int|null The document record ID.
+     * @return bool True when the record was inserted or updated.
      */
-    public function upsert(int $registration_id, int $document_id, string $file, bool $updateIfExists = true): ?int
+    public function upsert(int $registration_id, int $document_id, string $file, bool $updateIfExists = true): bool
     {
         $existing = $this->findByRegistrationIdAndDocument($registration_id, $document_id);
         if ($existing) {
-            if ($updateIfExists) {
-                $this->update($existing->id, [
-                    'file' => $file,
-                    'uploaded_at' => date('Y-m-d H:i:s'),
-                ]);
+            if (!$updateIfExists) {
+                return false;
             }
-            return $existing->id;
+            return $this->update($existing->id, [
+                'file' => $file,
+                'uploaded_at' => date('Y-m-d H:i:s'),
+            ]);
         }
-        return $this->insert([
+        $insertId = $this->insert([
             'registration_id' => $registration_id,
             'document_id' => $document_id,
             'file' => $file,
             'uploaded_at' => date('Y-m-d H:i:s'),
         ]);
+        return $insertId !== false && (int)$insertId > 0;
     }
 
     /**
@@ -154,7 +155,6 @@ class RegistrationDocumentModel extends Model
                     'registration_id' => $to_registration_id,
                     'document_id' => $d->document_id,
                     'file' => $d->file,
-                    'file_path' => $d->file_path ?? null,
                     'verified' => $d->verified ?? 0,
                     'uploaded_at' => $d->uploaded_at,
                 ]);
@@ -179,5 +179,155 @@ class RegistrationDocumentModel extends Model
             ->where('r.is_deleted', false)
             ->countAllResults();
         return $count > 0;
+    }
+
+    /**
+     * Build the document requirement list for a set of admission offerings.
+     *
+     * Combines the general requirements of each offering's academic year with
+     * the offering-specific requirements (soft-deleted rows excluded), keeps
+     * one entry per document and marks it required when any source requires it.
+     * Used by the student document page and by the final submit check so both
+     * work from the same list.
+     *
+     * @param array<int, int> $offering_ids The admission offering IDs.
+     * @return array<int, array{document_id: int, document_name: string, max_size: mixed, required: bool, file_name: string}>
+     */
+    public function findRequirementList(array $offering_ids): array
+    {
+        $offering_ids = array_values(array_unique(array_filter(array_map('intval', $offering_ids), fn($id) => $id > 0)));
+        if (empty($offering_ids)) {
+            return [];
+        }
+
+        $offeringModel = new AdmissionOfferingModel();
+        $academic_year_ids = [];
+        foreach ($offering_ids as $oid) {
+            $ay_id = $offeringModel->getAcademicYearId($oid);
+            if ($ay_id > 0) {
+                $academic_year_ids[$ay_id] = $ay_id;
+            }
+        }
+
+        $rows = [];
+        $generalModel = new GeneralDocumentRequirementModel();
+        foreach ($academic_year_ids as $ay_id) {
+            foreach ($generalModel->findAllByAcademicYear($ay_id)->getResult() as $row) {
+                if ((int)($row->is_deleted ?? 0) === 1) continue;
+                $rows[] = $row;
+            }
+        }
+
+        $specificModel = new DocumentRequirementModel();
+        foreach ($offering_ids as $oid) {
+            foreach ($specificModel->findByAdmissionOfferingId($oid)->getResult() as $row) {
+                $rows[] = $row;
+            }
+        }
+
+        $requirements = [];
+        foreach ($rows as $row) {
+            $document_id = (int)$row->document_id;
+            if ($document_id <= 0) continue;
+            $required = $row->required === null || (int)$row->required === 1;
+            if (isset($requirements[$document_id])) {
+                $requirements[$document_id]['required'] = $requirements[$document_id]['required'] || $required;
+                continue;
+            }
+            $requirements[$document_id] = [
+                'document_id' => $document_id,
+                'document_name' => $row->document_name ?? '',
+                'max_size' => $row->max_size,
+                'required' => $required,
+                'file_name' => '',
+            ];
+        }
+        return array_values($requirements);
+    }
+
+    /**
+     * List the required documents of a registration that have no uploaded file.
+     *
+     * @param int $registration_id The registration ID.
+     * @param int $offering_id     The registration's admission offering ID.
+     * @return array<int, string> Names of the missing documents (empty when complete).
+     */
+    public function findMissingRequired(int $registration_id, int $offering_id): array
+    {
+        $uploaded = [];
+        foreach ($this->findByRegistrationId($registration_id) as $doc) {
+            if (trim((string)($doc->file ?? '')) !== '') {
+                $uploaded[(int)$doc->document_id] = true;
+            }
+        }
+
+        $missing = [];
+        foreach ($this->findRequirementList([$offering_id]) as $req) {
+            if ($req['required'] && !isset($uploaded[$req['document_id']])) {
+                $missing[] = $req['document_name'] !== '' ? $req['document_name'] : ('Dokumen #' . $req['document_id']);
+            }
+        }
+        return $missing;
+    }
+
+    /**
+     * Get the stored file names of one document type across registrations.
+     *
+     * @param array<int, int> $registration_ids The registration IDs.
+     * @param int             $document_id      The document type ID.
+     * @return array<int, string> Distinct non-empty file names.
+     */
+    public function findFileNames(array $registration_ids, int $document_id): array
+    {
+        if (empty($registration_ids)) return [];
+        $rows = $this->select('file')
+            ->whereIn('registration_id', $registration_ids)
+            ->where('document_id', $document_id)
+            ->findAll();
+        $files = [];
+        foreach ($rows as $row) {
+            $file = trim((string)($row->file ?? ''));
+            if ($file !== '') {
+                $files[$file] = $file;
+            }
+        }
+        return array_values($files);
+    }
+
+    /**
+     * Check whether a stored file is still referenced by any registration
+     * (as a document or as a transfer proof).
+     *
+     * @param string $file_name The stored file name.
+     * @return bool True if at least one record still points to the file.
+     */
+    public function isFileReferenced(string $file_name): bool
+    {
+        $db = db_connect();
+        $documents = $db->table('registration_documents')->where('file', $file_name)->countAllResults();
+        if ($documents > 0) {
+            return true;
+        }
+        return $db->table('registrations')->where('transfer_proof', $file_name)->countAllResults() > 0;
+    }
+
+    /**
+     * Delete stored applicant files that are no longer referenced by any record.
+     *
+     * @param array<int, string> $file_names The stored file names to check.
+     * @return void
+     */
+    public function deleteUnreferencedFiles(array $file_names): void
+    {
+        foreach (array_unique($file_names) as $file_name) {
+            $file_name = trim((string)$file_name);
+            if ($file_name === '' || $this->isFileReferenced($file_name)) {
+                continue;
+            }
+            $path = find_registration_file($file_name);
+            if ($path !== null) {
+                @unlink($path);
+            }
+        }
     }
 }

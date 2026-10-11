@@ -35,7 +35,7 @@ class AdmissionController extends BaseController
 
         $admission_periods = [];
         $period_academic_year_map = [];
-        foreach ($periodModel->findAll() as $p) {
+        foreach ($periodModel->where('is_deleted', false)->findAll() as $p) {
             $admission_periods[$p->id] = $p->name;
             $period_academic_year_map[$p->id] = (int)$p->academic_year_id;
         }
@@ -46,7 +46,7 @@ class AdmissionController extends BaseController
         }
 
         $academic_years = [];
-        foreach (new AcademicYearModel()->findAll() as $row) {
+        foreach (new AcademicYearModel()->where('is_deleted', false)->findAll() as $row) {
             $academic_years[$row->id] = $row->name;
         }
 
@@ -124,28 +124,19 @@ class AdmissionController extends BaseController
             ]);
         }
 
-        $admission_offering_id = (int) $this->request->getVar('admission_offering_id') ?? 0;
+        $admission_offering_id = (int) $this->request->getVar('admission_offering_id');
         $offeringModel = new AdmissionOfferingModel();
-        $offering = $offeringModel->find($admission_offering_id);
+        $offering = $offeringModel->findOpenById($admission_offering_id);
         if (!$offering) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Pembukaan pendaftaran tidak ditemukan.',
+                'message' => 'Pembukaan pendaftaran tidak ditemukan atau periode pendaftarannya sudah ditutup.',
             ]);
         }
 
         $admission_period_id = (int)($offering->admission_period_id ?? 0);
-        $admission_year = 0;
-        $admission_fee = 0;
-
-        if ($admission_period_id > 0) {
-            $periodModel = new AdmissionPeriodModel();
-            $period = $periodModel->find($admission_period_id);
-            if ($period) {
-                $admission_year = $periodModel->getAdmissionYearByPeriodId($admission_period_id);
-                $admission_fee = (int)($period->registration_fee ?? 0);
-            }
-        }
+        $admission_year = new AdmissionPeriodModel()->getAdmissionYearByPeriodId($admission_period_id);
+        $admission_fee = (int)($offering->registration_fee ?? 0);
 
         $unique_id = 'registration:' . $this->actor . ':' . $admission_year;
         $applicationSetting = new ApplicationSettingModel();
@@ -204,10 +195,19 @@ class AdmissionController extends BaseController
                 'admission_year' => $admission_year,
                 'admission_fee' => $admission_fee,
                 'admission_offering_id' => $admission_offering_id,
+                'admission_period_id' => $admission_period_id,
                 'unique_id' => $unique_id . ':' . $admission_offering_id,
                 'created_by' => $actor,
             ];
             $insertId = $registrationModel->insert($insertData);
+
+            if ($insertId > 0) {
+                $source_reg = $registrationModel->findLatestUnsubmitted($actor, (int)$insertId);
+                if ($source_reg && (int)($source_reg->admission_offering_id ?? 0) > 0) {
+                    new RegistrationSubjectGradeModel()->copyFromRegistration((int)$source_reg->id, (int)$insertId);
+                    new RegistrationDocumentModel()->copyFromRegistration((int)$source_reg->id, (int)$insertId);
+                }
+            }
 
             return $this->response->setJSON([
                 'id' => $insertId,
@@ -229,12 +229,23 @@ class AdmissionController extends BaseController
             ]);
         }
 
+        $is_switching = $existingData
+            && (int)($existingData->admission_offering_id ?? 0) > 0
+            && (int)$existingData->admission_offering_id !== $admission_offering_id;
+        if ($is_switching && (int)($existingData->transfer_proof_verified ?? 0) === 1) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Pembayaran sudah diverifikasi admin. Pilihan pendaftaran tidak dapat diganti.',
+            ]);
+        }
+
         $actor = (int)session()->get('actor');
         $updateData = [
             'student_id' => $actor,
             'admission_year' => $admission_year,
             'admission_fee' => $admission_fee,
             'admission_offering_id' => $admission_offering_id,
+            'admission_period_id' => $admission_period_id,
             'unique_id' => $unique_id,
             'created_by' => $actor,
         ];
@@ -271,7 +282,7 @@ class AdmissionController extends BaseController
      */
     public function remove(): ResponseInterface
     {
-        $admission_offering_id = (int) $this->request->getVar('admission_offering_id') ?? 0;
+        $admission_offering_id = (int) $this->request->getVar('admission_offering_id');
         if ($admission_offering_id <= 0) {
             return $this->response->setJSON([
                 'success' => false,
@@ -297,15 +308,40 @@ class AdmissionController extends BaseController
             ]);
         }
 
+        $gradeModel = new RegistrationSubjectGradeModel();
+        $docModel = new RegistrationDocumentModel();
+        foreach ($registrationModel->findUnsubmittedSiblings($this->actor, (int)$existingData->id) as $sibling) {
+            $gradeModel->copyFromRegistration((int)$existingData->id, (int)$sibling->id);
+            $docModel->copyFromRegistration((int)$existingData->id, (int)$sibling->id);
+        }
+
+        $stored_files = array_map(fn($d) => (string)($d->file ?? ''), $docModel->findByRegistrationId((int)$existingData->id));
+        $stored_files[] = (string)($existingData->transfer_proof ?? '');
+
+        $db = db_connect();
+        $db->transStart();
         $registrationModel->update($existingData->id, [
+            'unique_id' => null,
             'admission_offering_id' => 0,
             'transfer_proof' => null,
             'transfer_proof_uploaded_at' => null,
-            'transfer_proof_uploaded_by' => null,
+            'is_deleted' => 1,
+            'deleted_by' => $this->actor,
+            'deleted_at' => date('Y-m-d H:i:s'),
         ]);
-        new RegistrationSubjectGradeModel()->deleteByRegistrationId((int)$existingData->id);
-        new RegistrationDocumentModel()->deleteByRegistrationId((int)$existingData->id);
+        $gradeModel->deleteByRegistrationId((int)$existingData->id);
+        $docModel->deleteByRegistrationId((int)$existingData->id);
         new RegistrationExamScoreModel()->deleteByRegistrationId((int)$existingData->id);
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Gagal membatalkan pilihan. Silakan coba lagi.',
+            ]);
+        }
+
+        $docModel->deleteUnreferencedFiles($stored_files);
 
         return $this->response->setJSON([
             'success' => true,

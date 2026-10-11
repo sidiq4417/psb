@@ -50,6 +50,7 @@ class DashboardController extends BaseController
         $user_data = $userModel->find($actor) ?? (object) [];
 
         $reg_id = (int) ($registration_data?->id ?? 0);
+        $offering_id = (int) ($registration_data?->admission_offering_id ?? 0);
 
         $gradeModel = new RegistrationSubjectGradeModel();
         $docModel = new RegistrationDocumentModel();
@@ -62,8 +63,8 @@ class DashboardController extends BaseController
             'wali' => !empty($user_data->guardian_name),
             'sekolah' => !empty($user_data->nisn) || !empty($user_data->school_name),
             'pilihan_prodi' => $registration_data && !empty($registration_data->admission_offering_id),
-            'nilai_rapor' => $reg_id > 0 && $gradeModel->countWithScore($reg_id) > 0,
-            'dokumen' => $reg_id > 0 && $docModel->countUploadedByRegistrationId($reg_id) > 0,
+            'nilai_rapor' => $reg_id > 0 && $offering_id > 0 && empty($gradeModel->findMissingScores($reg_id, $offering_id)),
+            'dokumen' => $reg_id > 0 && $offering_id > 0 && empty($docModel->findMissingRequired($reg_id, $offering_id)),
             'finalisasi' => $registration_data && !empty($registration_data->submitted),
         ];
 
@@ -112,9 +113,9 @@ class DashboardController extends BaseController
         }
 
         $safeName = basename($payment_method);
-        $file_path = FCPATH . 'uploads/' . $safeName;
+        $file_path = public_upload_path() . $safeName;
 
-        if (!file_exists($file_path)) {
+        if (!is_file($file_path)) {
             throw PageNotFoundException::forPageNotFound('File not found: ' . $safeName);
         }
 
@@ -131,9 +132,9 @@ class DashboardController extends BaseController
         }
 
         $safeName = basename($registration_terms);
-        $file_path = FCPATH . 'uploads/' . $safeName;
+        $file_path = public_upload_path() . $safeName;
 
-        if (!file_exists($file_path)) {
+        if (!is_file($file_path)) {
             throw PageNotFoundException::forPageNotFound('File not found: ' . $safeName);
         }
 

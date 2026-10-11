@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Libraries\Remember;
 use App\Models\RegistrationModel;
 use App\Models\UserModel;
 use App\Traits\DataTrait;
@@ -46,7 +47,6 @@ class ProfileController extends BaseController
             $vars['breadcrumb'] = 'Profil';
             $vars['full_name'] = $data->full_name ?? '';
             $vars['email'] = $data->email ?? '';
-            $vars['password_hash'] = $data->password ?? '';
             return view('profile', $vars);
         }
 
@@ -68,6 +68,8 @@ class ProfileController extends BaseController
     /**
      * Update the current user's profile information.
      *
+     * The current password is required whenever the email or the password changes.
+     *
      * @return ResponseInterface JSON response indicating success or failure.
      * @throws ReflectionException
      */
@@ -76,7 +78,7 @@ class ProfileController extends BaseController
         if ($this->id <= 0) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['auth' => 'Unauthorized access.']
+                'errors' => ['auth' => 'Sesi Anda telah berakhir. Silakan masuk kembali.']
             ]);
         }
 
@@ -85,14 +87,22 @@ class ProfileController extends BaseController
         if (!$existing) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['user' => 'User not found.']
+                'errors' => ['user' => 'Pengguna tidak ditemukan.']
             ]);
         }
 
         $input = $this->request->getJSON(true) ?? [];
+        if (!is_array($input)) {
+            $input = [];
+        }
+        foreach (['full_name', 'email', 'current_password', 'password', 'password_confirm'] as $field) {
+            $input[$field] = is_string($input[$field] ?? null) ? $input[$field] : '';
+        }
+        $input['full_name'] = trim($input['full_name']);
+        $input['email'] = trim($input['email']);
 
-        $full_name = trim($input['full_name'] ?? '');
-        $email = trim($input['email'] ?? '');
+        $full_name = $input['full_name'];
+        $email = $input['email'];
 
         $is_student = (bool) (session()->get('is_student') ?? false);
 
@@ -106,13 +116,6 @@ class ProfileController extends BaseController
             }
         }
 
-        if ($userModel->emailExistsForOtherUser($email, $this->id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'errors' => ['email' => 'Email sudah digunakan oleh pengguna lain']
-            ]);
-        }
-
         if (empty($email)) {
             return $this->response->setJSON([
                 'success' => false,
@@ -120,30 +123,64 @@ class ProfileController extends BaseController
             ]);
         }
 
+        if ($userModel->emailExistsForOtherUser($email, $this->id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['email' => 'Email sudah digunakan oleh pengguna lain']
+            ]);
+        }
+
         $validation = service('validation');
         $rules = [
-            'full_name' => ['label' => 'Nama Lengkap', 'rules' => 'required|max_length[200]'],
             'email' => ['label' => 'Email', 'rules' => 'required|valid_email|max_length[200]'],
         ];
 
-        $current_password = $input['current_password'] ?? '';
-        $password = $input['password'] ?? '';
-        $password_confirm = $input['password_confirm'] ?? '';
+        // The name is locked once the registration has been confirmed, so it is neither validated nor saved then.
+        if (!$is_submitted) {
+            $rules['full_name'] = [
+                'label' => 'Nama Lengkap',
+                'rules' => ['required', 'min_length[3]', 'max_length[150]', 'regex_match[/^[\p{L}\p{M}\s.\'`-]+$/u]'],
+                'errors' => [
+                    'required' => 'Nama Lengkap wajib diisi.',
+                    'min_length' => 'Nama Lengkap minimal 3 karakter.',
+                    'max_length' => 'Nama Lengkap maksimal 150 karakter.',
+                    'regex_match' => 'Nama Lengkap hanya boleh berisi huruf, spasi, titik, apostrof, dan tanda hubung.'
+                ]
+            ];
+        }
 
-        $changePassword = !empty($current_password) || !empty($password) || !empty($password_confirm);
+        $current_password = $input['current_password'];
+        $password = $input['password'];
+        $password_confirm = $input['password_confirm'];
 
-        if ($changePassword) {
-            $password_hash = $existing->password ?? '';
-            if (!password_verify($current_password, $password_hash)) {
+        $changeEmail = mb_strtolower($email) !== mb_strtolower((string) ($existing->email ?? ''));
+        $changePassword = $password !== '' || $password_confirm !== '';
+
+        if ($changeEmail || $changePassword) {
+            if ($current_password === '') {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'errors' => ['current_password' => 'Masukkan kata sandi saat ini untuk mengubah email atau kata sandi.']
+                ]);
+            }
+
+            if (strlen($current_password) > Setting::MAX_PASSWORD_SIZE_BYTES
+                || !password_verify($current_password, (string) ($existing->password ?? ''))
+            ) {
                 return $this->response->setJSON([
                     'success' => false,
                     'errors' => ['current_password' => 'Kata sandi saat ini tidak sesuai']
                 ]);
             }
+        }
 
-            $rules['current_password'] = ['label' => 'Kata Sandi Saat Ini', 'rules' => 'required'];
-            $rules['password'] = ['label' => 'Kata Sandi Baru', 'rules' => 'required|min_length[8]'];
-            $rules['password_confirm'] = ['label' => 'Ulangi Kata Sandi Baru', 'rules' => 'required|matches[password]'];
+        if ($changePassword) {
+            $rules['password'] = ['label' => 'Kata Sandi Baru', 'rules' => 'required|min_length[' . Setting::MIN_PASSWORD_LENGTH . ']|max_length[255]'];
+            $rules['password_confirm'] = [
+                'label' => 'Ulangi Kata Sandi Baru',
+                'rules' => 'required|matches[password]',
+                'errors' => ['matches' => 'Ulangi kata sandi baru tidak cocok dengan kata sandi baru.']
+            ];
         }
 
         $validation->setRules($rules);
@@ -172,10 +209,21 @@ class ProfileController extends BaseController
         $updateData['updated_by'] = (int) session()->get('actor');
         $userModel->update($this->id, $updateData);
 
+        // Keep the name/email shown in the layout in sync.
+        if (!$is_submitted) {
+            session()->set('full_name', $full_name);
+        }
+        session()->set('email', $email);
+
+        if ($changePassword) {
+            // A new password ends every "remember me" login of the account.
+            new Remember()->deleteUserToken($this->id);
+        }
+
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Updated successfully.',
+            'message' => 'Perubahan berhasil disimpan.',
         ]);
     }
 

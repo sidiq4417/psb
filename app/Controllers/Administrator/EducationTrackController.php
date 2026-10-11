@@ -68,9 +68,9 @@ class EducationTrackController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'code' => ['label' => 'Kode', 'rules' => 'required'],
-            'name' => ['label' => 'Nama Jenis Kelas', 'rules' => 'required'],
-            'description' => ['label' => 'Deskripsi', 'rules' => 'permit_empty'],
+            'code' => ['label' => 'Kode', 'rules' => 'required|max_length[50]'],
+            'name' => ['label' => 'Nama Jenis Kelas', 'rules' => 'required|max_length[100]'],
+            'description' => ['label' => 'Deskripsi', 'rules' => 'permit_empty|max_length[5000]'],
             'is_default' => ['label' => 'Default', 'rules' => 'permit_empty|in_list[true,false,1,0]'],
         ];
 
@@ -88,7 +88,8 @@ class EducationTrackController extends BaseController
             'code' => (string)$this->request->getPost('code'),
             'name' => (string)$this->request->getPost('name'),
             'description' => (string)$this->request->getPost('description'),
-            'is_default' => (string)$this->request->getPost('is_default'),
+            // FormBuilder posts checkbox values as "true"/"false".
+            'is_default' => filter_var($this->request->getPost('is_default'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
         ];
         $unique_id = 'education_track:' . url_title(mb_strtolower($data['code']));
 

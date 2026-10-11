@@ -35,11 +35,11 @@ class PDF extends TCPDF
 
         // Metadata
         $institution_name = mb_strtoupper(session()->get('institution_name') ?? '');
-        $this->SetTitle('FORMULIR PENERIMAAN MURID BARU ' . $institution_name);
+        $this->SetTitle('FORMULIR PENERIMAAN SANTRI BARU ' . $institution_name);
         $this->SetAuthor(base_url());
         $this->SetSubject($institution_name);
         $this->SetKeywords($institution_name);
-        $this->SetCreator('https://sekolahku.web.id');
+        $this->SetCreator($institution_name !== '' ? $institution_name : base_url());
 
         // Layout
         $this->SetMargins(7, 7, 7, true);

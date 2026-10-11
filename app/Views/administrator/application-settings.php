@@ -139,21 +139,21 @@
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="institution_name" type="text" class="form-control" name="institution_name" value="<?= $row->institution_name ?? '' ?>" placeholder="Nama Instansi">
+                        <input id="institution_name" type="text" class="form-control" name="institution_name" value="<?= esc((string) ($row->institution_name ?? ''), 'attr') ?>" placeholder="Nama Instansi">
                         <label for="institution_name">Nama Instansi</label>
                     </div>
                 </div>
 
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="tagline" type="text" class="form-control" name="tagline" value="<?= $row->tagline ?? '' ?>" placeholder="Portal Admisi Terpadu">
+                        <input id="tagline" type="text" class="form-control" name="tagline" value="<?= esc((string) ($row->tagline ?? ''), 'attr') ?>" placeholder="Penerimaan Santri Baru (PSB) Online">
                         <label for="tagline">Tagline / Subtitle</label>
                     </div>
                 </div>
 
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <textarea id="address" class="form-control" name="address" style="height: 100px" placeholder="Alamat"><?= $row->address ?? '' ?></textarea>
+                        <textarea id="address" class="form-control" name="address" style="height: 100px" placeholder="Alamat"><?= esc((string) ($row->address ?? '')) ?></textarea>
                         <label for="address">Alamat Lengkap</label>
                     </div>
                 </div>
@@ -169,19 +169,19 @@
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="telephone" type="text" class="form-control" name="telephone" value="<?= $row->telephone ?? '' ?>" placeholder="Telepon">
+                        <input id="telephone" type="text" class="form-control" name="telephone" value="<?= esc((string) ($row->telephone ?? ''), 'attr') ?>" placeholder="Telepon">
                         <label for="telephone">Telepon Kantor</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="mobile_phone" type="text" class="form-control" name="mobile_phone" value="<?= $row->mobile_phone ?? '' ?>" placeholder="Handphone">
+                        <input id="mobile_phone" type="text" class="form-control" name="mobile_phone" value="<?= esc((string) ($row->mobile_phone ?? ''), 'attr') ?>" placeholder="Handphone">
                         <label for="mobile_phone">Handphone / WhatsApp</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="email" type="email" class="form-control" name="email" value="<?= $row->email ?? '' ?>" placeholder="Email">
+                        <input id="email" type="email" class="form-control" name="email" value="<?= esc((string) ($row->email ?? ''), 'attr') ?>" placeholder="Email">
                         <label for="email">Alamat Email Resmi</label>
                     </div>
                 </div>
@@ -200,7 +200,7 @@
                         <select id="timezone" class="form-select" name="timezone">
                             <option value="">Pilih Zona Waktu:</option>
                             <?php foreach ($timezones as $timezone): ?>
-                                <option value="<?= $timezone ?>" <?= ($row->timezone == $timezone) ? 'selected' : '' ?>><?= $timezone ?></option>
+                                <option value="<?= esc($timezone, 'attr') ?>" <?= (($row->timezone ?? '') === $timezone) ? 'selected' : '' ?>><?= esc($timezone) ?></option>
                             <?php endforeach; ?>
                         </select>
                         <label for="timezone">Zona Waktu Aplikasi</label>
@@ -231,28 +231,28 @@
             <div class="row g-4">
                 <?php
                 $uploads = [
-                    'logo' => 'Logo Instansi',
-                    'favicon' => 'Favicon Browser',
-                    'payment_method' => 'Panduan Pembayaran (PDF)',
-                    'registration_terms' => 'Syarat & Ketentuan (PDF)'
+                    'logo' => ['Logo Instansi', 'image/png,image/jpeg,image/gif', 'Format PNG, JPG, atau GIF. Ukuran maksimal 1MB'],
+                    'favicon' => ['Favicon Browser', '.ico,image/x-icon,image/png,image/gif', 'Format ICO, PNG, atau GIF. Ukuran maksimal 512KB'],
+                    'payment_method' => ['Panduan Pembayaran (PDF)', 'application/pdf', 'Format PDF. Ukuran maksimal 10MB'],
+                    'registration_terms' => ['Syarat & Ketentuan (PDF)', 'application/pdf', 'Format PDF. Ukuran maksimal 10MB'],
                 ];
-                foreach ($uploads as $name => $label): ?>
+                foreach ($uploads as $name => [$label, $accept, $hint]): ?>
                     <div class="col-md-6">
                         <div class="file-upload-item">
                             <div class="upload-label">
-                                <span><?= $label ?></span>
-                                <span id="preview-<?= $name ?>">
+                                <span><?= esc($label) ?></span>
+                                <span id="preview-<?= esc($name, 'attr') ?>">
                                     <?php if (!empty($row->$name)): ?>
-                                        <a href="<?= base_url('administrator/application-settings/download/' . $row->$name) ?>" target="_blank" class="preview-link">
+                                        <a href="<?= esc(base_url('administrator/application-settings/download/' . rawurlencode(basename((string) $row->$name))), 'attr') ?>" target="_blank" rel="noopener" class="preview-link">
                                             <i class="cil-external-link me-1"></i> Lihat File
                                         </a>
                                     <?php endif; ?>
                                 </span>
                             </div>
-                            <input type="file" class="form-control form-control-sm" name="<?= $name ?>"
-                                   <?= strpos($name, '_terms') !== false || strpos($name, 'method') !== false ? 'accept="application/pdf"' : '' ?>
-                                   onchange="upload(this, '<?= $name ?>')">
-                            <div class="form-text text-muted smaller mt-1">Ukuran maksimal 2MB</div>
+                            <input type="file" class="form-control form-control-sm" name="<?= esc($name, 'attr') ?>"
+                                   accept="<?= esc($accept, 'attr') ?>"
+                                   onchange="upload(this, '<?= esc($name, 'js') ?>')">
+                            <div class="form-text text-muted smaller mt-1"><?= esc($hint) ?></div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -268,25 +268,33 @@
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="smtp_host" type="text" class="form-control" name="smtp_host" value="<?= $row->smtp_host ?? '' ?>" placeholder="Host">
+                        <input id="smtp_host" type="text" class="form-control" name="smtp_host" value="<?= esc((string) ($row->smtp_host ?? ''), 'attr') ?>" placeholder="Host">
                         <label for="smtp_host">SMTP Host</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input id="smtp_user" type="text" class="form-control" name="smtp_user" value="<?= $row->smtp_user ?? '' ?>" placeholder="User">
+                        <input id="smtp_user" type="text" class="form-control" name="smtp_user" value="<?= esc((string) ($row->smtp_user ?? ''), 'attr') ?>" autocomplete="off" placeholder="User">
                         <label for="smtp_user">SMTP Username</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-floating">
-                        <input id="smtp_pass" type="password" class="form-control" name="smtp_pass" value="<?= $row->smtp_pass ?? '' ?>" placeholder="Pass">
+                        <input id="smtp_pass" type="password" class="form-control" name="smtp_pass" value="" autocomplete="new-password"
+                               placeholder="<?= !empty($stored_secrets['smtp_pass']) ? '(tersimpan — kosongkan jika tidak diubah)' : 'Pass' ?>">
                         <label for="smtp_pass">SMTP Password</label>
                     </div>
+                    <?php if (!empty($stored_secrets['smtp_pass'])): ?>
+                        <div class="form-text text-muted">Tersimpan — kosongkan jika tidak diubah.</div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" id="clear_smtp_pass" name="clear_smtp_pass" value="1">
+                            <label class="form-check-label small" for="clear_smtp_pass">Hapus password tersimpan</label>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-2">
                     <div class="form-floating">
-                        <input id="smtp_port" type="text" class="form-control" name="smtp_port" value="<?= $row->smtp_port ?? '' ?>" placeholder="Port">
+                        <input id="smtp_port" type="text" class="form-control" name="smtp_port" value="<?= esc((string) ($row->smtp_port ?? ''), 'attr') ?>" placeholder="Port">
                         <label for="smtp_port">SMTP Port</label>
                     </div>
                 </div>
@@ -302,15 +310,23 @@
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="form-floating">
-                        <input id="turnstile_site_key" type="text" class="form-control" name="turnstile_site_key" value="<?= $row->turnstile_site_key ?? '' ?>" placeholder="Site Key">
+                        <input id="turnstile_site_key" type="text" class="form-control" name="turnstile_site_key" value="<?= esc((string) ($row->turnstile_site_key ?? ''), 'attr') ?>" placeholder="Site Key">
                         <label for="turnstile_site_key">Site Key</label>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-floating">
-                        <input id="turnstile_secret_key" type="password" class="form-control" name="turnstile_secret_key" value="<?= $row->turnstile_secret_key ?? '' ?>" placeholder="Secret Key">
+                        <input id="turnstile_secret_key" type="password" class="form-control" name="turnstile_secret_key" value="" autocomplete="new-password"
+                               placeholder="<?= !empty($stored_secrets['turnstile_secret_key']) ? '(tersimpan — kosongkan jika tidak diubah)' : 'Secret Key' ?>">
                         <label for="turnstile_secret_key">Secret Key</label>
                     </div>
+                    <?php if (!empty($stored_secrets['turnstile_secret_key'])): ?>
+                        <div class="form-text text-muted">Tersimpan — kosongkan jika tidak diubah.</div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" id="clear_turnstile_secret_key" name="clear_turnstile_secret_key" value="1">
+                            <label class="form-check-label small" for="clear_turnstile_secret_key">Hapus secret key tersimpan</label>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -324,9 +340,10 @@
 </div>
 
 <script>
-    async function showAlert(message, type) {
+    function showAlert(message, type) {
         const alertBox = document.getElementById("response-alert");
-        alertBox.innerHTML = message;
+        const lines = Array.isArray(message) ? message : [message];
+        alertBox.innerHTML = lines.map(line => H.Esc(line)).join("<br>");
         alertBox.className = `alert alert-settings alert-dismissible fade show ${type}`;
         alertBox.classList.remove("d-none");
 
@@ -341,15 +358,14 @@
         const res = await fetch(url, {
             method: "POST",
             body: params,
-            cache: "no-cache",
-            mode: "cors"
+            cache: "no-cache"
         });
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         return res.json();
     }
 
     async function upload(e, document_name) {
-        const fileInput = document.querySelector(`input[name=${document_name}]`);
+        const fileInput = e;
         if (!fileInput.files.length) return;
 
         const data = new FormData();
@@ -362,11 +378,12 @@
                 fileInput.value = "";
                 const previewContainer = document.getElementById(`preview-${document_name}`);
                 if (previewContainer) {
-                    previewContainer.innerHTML = `<a href="${_BASE_URL}administrator/application-settings/download/${res.file}" target="_blank" class="preview-link"><i class="cil-external-link me-1"></i> Lihat File</a>`;
+                    previewContainer.innerHTML = `<a href="${H.Esc(_BASE_URL + 'administrator/application-settings/download/' + encodeURIComponent(res.file))}" target="_blank" rel="noopener" class="preview-link"><i class="cil-external-link me-1"></i> Lihat File</a>`;
                 }
                 showAlert(res.message, "alert-success");
             } else {
-                showAlert(res.errors.file || "Gagal mengunggah file.", "alert-danger");
+                fileInput.value = "";
+                showAlert(Object.values(res.errors || {}).length ? Object.values(res.errors) : "Gagal mengunggah file.", "alert-danger");
             }
         } catch (error) {
             showAlert("Terjadi kesalahan teknis saat mengunggah.", "alert-danger");
@@ -384,6 +401,7 @@
             "tagline",
             "smtp_host", "smtp_user", "smtp_pass", "smtp_port",
             "turnstile_site_key", "turnstile_secret_key",
+            "clear_smtp_pass", "clear_turnstile_secret_key",
             "allow_multiple_registration", "max_registrations"
         ].map(name => document.querySelector(`[name="${name}"]`));
 
@@ -410,7 +428,20 @@
 
                 const res = await H.AjaxRequest(`${_BASE_URL}administrator/application-settings/save`, {body: data});
                 const messageType = res.success ? "alert-success" : "alert-danger";
-                showAlert(res.message || Object.values(res.errors || {}).join("<br/>"), messageType);
+                showAlert(res.message || Object.values(res.errors || {}), messageType);
+                if (res.success) {
+                    ["smtp_pass", "turnstile_secret_key"].forEach(name => {
+                        const input = document.querySelector(`[name="${name}"]`);
+                        const clear = document.querySelector(`[name="clear_${name}"]`);
+                        if (clear && clear.checked) {
+                            clear.checked = false;
+                            if (input) input.placeholder = "";
+                        } else if (input && input.value !== "") {
+                            input.placeholder = "(tersimpan — kosongkan jika tidak diubah)";
+                        }
+                        if (input) input.value = "";
+                    });
+                }
             } catch (error) {
                 console.error("Submission error:", error);
                 showAlert("Gagal memproses penyimpanan konfigurasi.", "alert-danger");

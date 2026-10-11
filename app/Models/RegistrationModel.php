@@ -7,6 +7,7 @@ namespace App\Models;
 use CodeIgniter\Database\BaseResult;
 use CodeIgniter\Database\Query;
 use CodeIgniter\Model;
+use Throwable;
 
 class RegistrationModel extends Model
 {
@@ -18,8 +19,8 @@ class RegistrationModel extends Model
         'submitted_by', 'selection_status', 'selection_notes', 'admission_fee',
         'transfer_proof', 'transfer_proof_uploaded_at', 'transfer_proof_verified',
         'transfer_proof_verified_at',
-        'is_deleted', 'created_by', 'updated_by', 'deleted_by', 'restored_by',
-        'restored_at',
+        'is_deleted', 'created_by', 'updated_by', 'deleted_by', 'deleted_at',
+        'restored_by', 'restored_at',
     ];
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
@@ -175,6 +176,8 @@ class RegistrationModel extends Model
              , x2.transfer_proof
              , x2.transfer_proof_verified
              , x2.transfer_proof_verified_at
+             , x2.selection_status
+             , x2.selection_notes
              , x3.full_name
              , x3.nik
              , x3.npwp
@@ -262,12 +265,14 @@ class RegistrationModel extends Model
         }
         return $db->query("
         SELECT x1.id
+            , x1.admission_offering_id
             , x1.admission_year
             , x1.registration_number
             , x1.admission_fee
             , x1.submitted
             , x1.submitted_at
             , x1.transfer_proof
+            , x1.transfer_proof_verified
             , x1.transfer_proof_verified_at
             , CASE WHEN x1.admission_offering_id IS NOT NULL THEN 1 ELSE 0 END AS count
             , xperiod.name AS admission_period
@@ -352,7 +357,10 @@ class RegistrationModel extends Model
     /**
      * Generate a unique registration number for a given admission year.
      *
-     * Uses a MySQL GET_LOCK to ensure sequential numbering.
+     * @deprecated The lock is released before the caller stores the number, so
+     *             concurrent callers can receive the same number. Use
+     *             submitRegistrations(), which keeps the lock until the number
+     *             is saved.
      *
      * @param int $admission_year The admission year.
      * @return string The generated registration number.
@@ -365,17 +373,107 @@ class RegistrationModel extends Model
         $db->query('SELECT GET_LOCK(?, 10)', [$lockName]);
 
         try {
-            $row = $db->query("
-            SELECT COALESCE((
-                SELECT MAX(RIGHT(registration_number, 6))
-                FROM registrations
-                WHERE LEFT(registration_number, 4) = ?
-                AND COALESCE(registration_number, '') <> ''
-                AND is_deleted = FALSE
-            ), '0') AS max_number
-            ", [(string)$admission_year])->getRow();
-            $number = ((int)$row->max_number) + 1;
-            return $admission_year . sprintf('%06s', $number);
+            return $this->nextRegistrationNumber($admission_year);
+        } finally {
+            $db->query('SELECT RELEASE_LOCK(?)', [$lockName]);
+        }
+    }
+
+    /**
+     * Compute the next registration number for an admission year.
+     *
+     * Must only be called while holding the registration number lock.
+     * Numbers of deleted registrations are counted too, so a number is never
+     * handed out twice.
+     *
+     * @param int $admission_year The admission year.
+     * @return string The next registration number (year + 6-digit sequence).
+     */
+    private function nextRegistrationNumber(int $admission_year): string
+    {
+        $db = db_connect();
+        $row = $db->query("
+        SELECT COALESCE((
+            SELECT MAX(RIGHT(registration_number, 6))
+            FROM registrations
+            WHERE LEFT(registration_number, 4) = ?
+            AND COALESCE(registration_number, '') <> ''
+        ), '0') AS max_number
+        ", [(string)$admission_year])->getRow();
+        $number = ((int)$row->max_number) + 1;
+        return $admission_year . sprintf('%06s', $number);
+    }
+
+    /**
+     * Finalise (submit) registrations under one registration number.
+     *
+     * Acquires the registration number lock, reuses the number of the
+     * student's already submitted registration in the same admission year (or
+     * generates the next one), stores it on every given unsubmitted
+     * registration and commits, all before the lock is released. Must not be
+     * called inside an open transaction, otherwise the lock would be released
+     * before the commit.
+     *
+     * @param array<int, int> $ids            The registration IDs to submit.
+     * @param int             $admission_year The admission year.
+     * @param int             $student_id     The owning student (also stored as submitted_by).
+     * @return string|null The registration number, or null when nothing was submitted.
+     */
+    public function submitRegistrations(array $ids, int $admission_year, int $student_id): ?string
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($id) => $id > 0)));
+        if (empty($ids) || $student_id <= 0) {
+            return null;
+        }
+
+        $db = db_connect();
+        $lockName = 'registration_number_' . $admission_year;
+        $lock = $db->query('SELECT GET_LOCK(?, 10) AS acquired', [$lockName])->getRow();
+        if ((int)($lock->acquired ?? 0) !== 1) {
+            return null;
+        }
+
+        try {
+            $db->transBegin();
+            try {
+                $existing = $db->table('registrations')
+                    ->select('registration_number')
+                    ->where('student_id', $student_id)
+                    ->where('admission_year', $admission_year)
+                    ->where('submitted', 1)
+                    ->where('is_deleted', false)
+                    ->where('registration_number IS NOT NULL')
+                    ->where('registration_number !=', '')
+                    ->orderBy('id')
+                    ->limit(1)
+                    ->get()
+                    ->getRow();
+                $number = $existing->registration_number ?? $this->nextRegistrationNumber($admission_year);
+
+                $db->table('registrations')
+                    ->whereIn('id', $ids)
+                    ->where('student_id', $student_id)
+                    ->where('submitted', 0)
+                    ->where('is_deleted', false)
+                    ->update([
+                        'admission_year' => $admission_year,
+                        'registration_number' => $number,
+                        'submitted' => 1,
+                        'submitted_at' => date('Y-m-d H:i:s'),
+                        'submitted_by' => $student_id,
+                        'updated_by' => $student_id,
+                    ]);
+
+                if ($db->affectedRows() < 1 || $db->transStatus() === false) {
+                    $db->transRollback();
+                    return null;
+                }
+                $db->transCommit();
+                return (string)$number;
+            } catch (Throwable $e) {
+                $db->transRollback();
+                throw $e;
+            }
         } finally {
             $db->query('SELECT RELEASE_LOCK(?)', [$lockName]);
         }
@@ -502,6 +600,7 @@ class RegistrationModel extends Model
     {
         return $this->where('student_id', $student_id)
             ->where('is_deleted', false)
+            ->where('submitted', 0)
             ->where('id !=', $exclude_id)
             ->where('admission_offering_id >', 0)
             ->findAll();

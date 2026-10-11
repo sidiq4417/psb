@@ -109,7 +109,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="telephone" type="text" class="form-control" name="telephone"
-                               value="<?= $row->telephone ?? '' ?>" placeholder="Telepon Rumah"
+                               value="<?= esc($row->telephone ?? '', 'attr') ?>" placeholder="Telepon Rumah"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="telephone">Telepon Rumah</label>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="mobile_phone" type="text" class="form-control" name="mobile_phone"
-                               value="<?= $row->mobile_phone ?? '' ?>" placeholder="Handphone"
+                               value="<?= esc($row->mobile_phone ?? '', 'attr') ?>" placeholder="Handphone"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="mobile_phone">Handphone / Mobile</label>
                     </div>
@@ -125,7 +125,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="whatsapp" type="text" class="form-control" name="whatsapp"
-                               value="<?= $row->whatsapp ?? '' ?>" placeholder="WhatsApp"
+                               value="<?= esc($row->whatsapp ?? '', 'attr') ?>" placeholder="WhatsApp"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="whatsapp">No. WhatsApp <sup class="text-danger">*</sup></label>
                     </div>
@@ -133,7 +133,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="telegram" type="text" class="form-control" name="telegram"
-                               value="<?= $row->telegram ?? '' ?>" placeholder="Telegram"
+                               value="<?= esc($row->telegram ?? '', 'attr') ?>" placeholder="Telegram"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="telegram">Username / No. Telegram</label>
                     </div>
@@ -151,7 +151,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="facebook" type="text" class="form-control" name="facebook"
-                               value="<?= $row->facebook ?? '' ?>" placeholder="Facebook"
+                               value="<?= esc($row->facebook ?? '', 'attr') ?>" placeholder="Facebook"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="facebook">Facebook URL / Username</label>
                     </div>
@@ -159,7 +159,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="twitter" type="text" class="form-control" name="twitter"
-                               value="<?= $row->twitter ?? '' ?>" placeholder="Twitter"
+                               value="<?= esc($row->twitter ?? '', 'attr') ?>" placeholder="Twitter"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="twitter">Twitter / X Username</label>
                     </div>
@@ -167,7 +167,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="instagram" type="text" class="form-control" name="instagram"
-                               value="<?= $row->instagram ?? '' ?>" placeholder="Instagram"
+                               value="<?= esc($row->instagram ?? '', 'attr') ?>" placeholder="Instagram"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="instagram">Instagram Username</label>
                     </div>
@@ -175,7 +175,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="tiktok" type="text" class="form-control" name="tiktok"
-                               value="<?= $row->tiktok ?? '' ?>" placeholder="TikTok"
+                               value="<?= esc($row->tiktok ?? '', 'attr') ?>" placeholder="TikTok"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="tiktok">TikTok Username</label>
                     </div>
@@ -241,7 +241,7 @@
                     });
                 }
 
-                showAlert(resData.message || Object.values(resData.errors || {}).join("<br/>"), messageType);
+                showAlert(H.Esc(resData.message || "") || Object.values(resData.errors || {}).map(H.Esc).join("<br/>"), messageType);
             } catch (error) {
                 console.error("Submission error:", error);
                 showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

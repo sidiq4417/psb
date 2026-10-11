@@ -3,6 +3,7 @@
 namespace App\Libraries;
 
 use App\Models\UserModel;
+use App\Services\AccountVerificationService;
 use CodeIgniter\Database\BaseConnection;
 use Config\Database;
 use Config\Setting;
@@ -37,6 +38,11 @@ class Auth
     protected BaseConnection $db;
 
     /**
+     * Bcrypt hash of a random string, used to equalize timing for unknown emails.
+     */
+    private const string DUMMY_PASSWORD_HASH = '$2y$12$DC3A9LdWxv629psPM3SeKOjHAYBPV30oi0lt2uAKEZUFdoEL70zyG';
+
+    /**
      * Auth Constructor.
      *
      * Initializes the remember-me handler and loads cookie helper.
@@ -53,12 +59,14 @@ class Auth
      *
      * Flow:
      * - Ensure email and password are provided.
-     * - Find a user by email.
-     * - Check if max login attempts exceeded.
-     * - Verify password against stored hash.
-     * - Reset login attempts on success, increment on failure.
-     * - Check account verification status for students.
-     * - Set session data and update last login info.
+     * - Refuse while the email/IP pair is locked out (checked before the lookup so the
+     *   response does not reveal whether the email exists).
+     * - Find a user by email and verify the password against the stored hash
+     *   (a dummy hash is checked for unknown emails to keep the timing similar).
+     * - Record failed attempts; clear them on success.
+     * - Refuse unverified student accounts and re-send the verification email
+     *   (at most once per AccountVerificationService::RESEND_INTERVAL).
+     * - Regenerate the session ID, set session data and update last login info.
      * - Handle "remember me" if enabled.
      *
      * @param string    $email       User email/username.
@@ -74,7 +82,22 @@ class Auth
             return (object)[
                 'success' => false,
                 'errors' => [
-                    'email' => 'The User ID and/or Password field is required.'
+                    'email' => 'Email dan kata sandi wajib diisi.'
+                ]
+            ];
+        }
+
+        // No account can have a longer email (users.email and login_attempts.identity are 255 characters).
+        if (mb_strlen($email) > 255) {
+            return $this->invalidCredentials();
+        }
+
+        // check max login attempts using the dedicated table
+        if ($this->isAccountLocked($ip_address, $email)) {
+            return (object)[
+                'success' => false,
+                'errors' => [
+                    'email' => 'Terlalu banyak percobaan masuk. Silakan coba lagi setelah ' . Setting::LOCKOUT_TIME . ' menit.'
                 ]
             ];
         }
@@ -84,46 +107,21 @@ class Auth
         $row = $query->getRow();
 
         if (!isset($row)) {
-            return (object)[
-                'success' => false,
-                'errors' => [
-                    'email' => 'Your User ID is not registered yet. Please, try to register first.'
-                ]
-            ];
-        }
-
-        // check max login attempts using the dedicated table
-        if ($this->isAccountLocked($ip_address, $email)) {
-            return (object)[
-                'success' => false,
-                'errors' => [
-                    'email' => 'Too many login attempts. Please try again after ' . Setting::LOCKOUT_TIME . ' minutes.'
-                ]
-            ];
+            // Spend the same hashing time as a real check so the response time does not reveal unknown emails.
+            $this->verifyPassword($password, self::DUMMY_PASSWORD_HASH);
+            $this->recordLoginAttempt($ip_address, $email);
+            return $this->invalidCredentials();
         }
 
         $password_hash = $row->password;
         if (!$this->verifyPassword($password, $password_hash)) {
             // record failed attempt in the dedicated table
             $this->recordLoginAttempt($ip_address, $email);
-            return (object)[
-                'success' => false,
-                'errors' => [
-                    'email' => 'Incorrect Login.'
-                ]
-            ];
+            return $this->invalidCredentials();
         }
 
         // clear login attempts on success from the dedicated table
         $this->clearLoginAttempts($ip_address, $email);
-
-        // Update last login in users' table
-        $this->db->table('users')
-            ->where('id', (int)$row->id)
-            ->update([
-                'last_logged_in' => time(),
-                'last_logged_in_ip' => $ip_address,
-            ]);
 
         // Load full user data for session
         $user_data = new UserModel()->find((int)$row->id);
@@ -135,12 +133,20 @@ class Auth
             return (object)[
                 'success' => false,
                 'errors' => [
-                    'email' => 'Your account has not been activated.'
+                    'email' => $this->resendVerificationEmail((int)$row->id, $user_data)
                 ]
             ];
         }
 
         $actor = (int)$row->id;
+
+        // Update last login in users' table
+        $this->db->table('users')
+            ->where('id', $actor)
+            ->update([
+                'last_logged_in' => time(),
+                'last_logged_in_ip' => $ip_address,
+            ]);
 
         // Regenerate session ID to prevent Session Fixation
         session()->regenerate(true);
@@ -154,9 +160,54 @@ class Auth
         return (object)[
             'success' => true,
             'is_student' => $is_student,
-            'message' => 'Logged In Successfully.',
+            'message' => 'Berhasil masuk.',
             'id' => $actor
         ];
+    }
+
+    /**
+     * Generic response for an unknown email or a wrong password.
+     *
+     * @return object Result object with success=false.
+     */
+    private function invalidCredentials(): object
+    {
+        return (object)[
+            'success' => false,
+            'errors' => [
+                'email' => 'Email atau kata sandi salah.'
+            ]
+        ];
+    }
+
+    /**
+     * Re-send the verification email for an unverified account (rate limited)
+     * and build the message shown on the login form.
+     *
+     * @param int         $user_id   User ID.
+     * @param object|null $user_data Full user row.
+     * @return string Message for the user.
+     */
+    private function resendVerificationEmail(int $user_id, ?object $user_data): string
+    {
+        $email = (string) ($user_data->email ?? '');
+        $verification = new AccountVerificationService();
+
+        $last_attempt = $verification->lastAttempt($user_id);
+        if ($last_attempt === true) {
+            return 'Akun Anda belum diaktifkan. Email verifikasi sudah dikirim ke ' . $email
+                . ' kurang dari 10 menit yang lalu. Silakan periksa kotak masuk atau folder spam, lalu klik tautan verifikasi.';
+        }
+        if ($last_attempt === false) {
+            return 'Akun Anda belum diaktifkan dan email verifikasi gagal dikirim. Silakan hubungi panitia PSB atau coba lagi dalam 10 menit.';
+        }
+
+        if ($verification->send($user_id, (string) ($user_data->full_name ?? ''), $email)) {
+            return 'Akun Anda belum diaktifkan. Kami telah mengirim ulang email verifikasi ke ' . $email
+                . '. Silakan periksa kotak masuk atau folder spam, lalu klik tautan verifikasi.';
+        }
+
+        return 'Akun Anda belum diaktifkan dan email verifikasi gagal dikirim. Silakan hubungi panitia PSB.';
     }
 
     /**
@@ -295,9 +346,11 @@ class Auth
      * Check if a user is logged in.
      *
      * - Validates a session actor.
-     * - Supports auto-login via remember-me token.
+     * - Supports auto-login via remember-me token: the session ID is regenerated
+     *   and the token is rotated (a new selector/validator replaces the used one).
      *
      * @return bool True if logged in, false otherwise.
+     * @throws RandomException
      */
     public function isLoggedIn(): bool
     {
@@ -305,14 +358,19 @@ class Auth
             return true;
         }
 
+        if (!Setting::ALLOW_REMEMBERING) {
+            return false;
+        }
+
         $token = $_COOKIE[Setting::REMEMBER_COOKIE_NAME] ?? null;
-        if ($token && $this->remember->isValidToken($token)) {
+        if (is_string($token) && $token !== '' && $this->remember->isValidToken($token)) {
             $actor = $this->remember->findUserIdByToken($token);
             if ($actor > 0) {
+                session()->regenerate(true);
                 $this->setSessions($actor, null, service('request')->getIPAddress());
+                $this->remember->rememberMe($actor);
                 return true;
             }
-            return false;
         }
         return false;
     }

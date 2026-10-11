@@ -109,7 +109,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="full_name" type="text" class="form-control" name="full_name"
-                               value="<?= $row->full_name ?? '' ?>" placeholder="Nama Lengkap"
+                               value="<?= esc($row->full_name ?? '', 'attr') ?>" placeholder="Nama Lengkap"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="full_name">Nama Lengkap (Sesuai Ijazah) <sup class="text-danger">*</sup></label>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="nik" type="text" class="form-control" name="nik"
-                               value="<?= $row->nik ?? '' ?>" placeholder="NIK"
+                               value="<?= esc($row->nik ?? '', 'attr') ?>" placeholder="NIK"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="nik">NIK / No. Paspor (WNA) <sup class="text-danger">*</sup></label>
                     </div>
@@ -125,7 +125,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="npwp" type="text" class="form-control" name="npwp"
-                               value="<?= $row->npwp ?? '' ?>" placeholder="NPWP"
+                               value="<?= esc($row->npwp ?? '', 'attr') ?>" placeholder="NPWP"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="npwp">NPWP</label>
                     </div>
@@ -145,7 +145,7 @@
                         <select id="citizenship" class="form-select" name="citizenship" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($countries as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->citizenship) && $row->citizenship == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->citizenship) && $row->citizenship == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="citizenship">Kewarganegaraan</label>
@@ -166,7 +166,7 @@
                         <select id="birth_place_country_id" class="form-select" name="birth_place_country_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="99">Lainnya</option>
                             <?php foreach ($countries as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->birth_place_country_id) && $row->birth_place_country_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->birth_place_country_id) && $row->birth_place_country_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="birth_place_country_id">Negara Tempat Lahir</label>
@@ -175,7 +175,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="birth_date" type="date" class="form-control" name="birth_date"
-                               value="<?= $row->birth_date ?? '' ?>" placeholder="Tanggal Lahir"
+                               value="<?= esc($row->birth_date ?? '', 'attr') ?>" placeholder="Tanggal Lahir"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="birth_date">Tanggal Lahir</label>
                     </div>
@@ -196,6 +196,14 @@
                         <label for="birth_place_district_id">Kab/Kota Tempat Lahir</label>
                     </div>
                 </div>
+                <div class="col-md-12" id="birth_place_text_wrapper">
+                    <div class="form-floating">
+                        <input id="birth_place" type="text" class="form-control" name="birth_place" maxlength="100"
+                               value="<?= esc($row->birth_place ?? '', 'attr') ?>" placeholder="Kota Tempat Lahir"
+                               <?= $is_locked ? 'disabled' : '' ?>>
+                        <label for="birth_place">Kota Tempat Lahir (isi jika lahir di luar negeri atau tidak ada di daftar)</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -211,7 +219,7 @@
                         <select id="religion_id" class="form-select" name="religion_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($religions as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->religion_id) && $row->religion_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->religion_id) && $row->religion_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="religion_id">Agama</label>
@@ -220,7 +228,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="mother_name" type="text" class="form-control" name="mother_name"
-                               value="<?= $row->mother_name ?? '' ?>" placeholder="Nama Ibu Kandung"
+                               value="<?= esc($row->mother_name ?? '', 'attr') ?>" placeholder="Nama Ibu Kandung"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="mother_name">Nama Ibu Kandung</label>
                     </div>
@@ -238,7 +246,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="kps" type="text" class="form-control" name="kps"
-                               value="<?= $row->kps ?? '' ?>" placeholder="No. KPS"
+                               value="<?= esc($row->kps ?? '', 'attr') ?>" placeholder="No. KPS"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="kps">No. KPS</label>
                     </div>
@@ -257,7 +265,7 @@
 </div>
 
 <script>
-    let data = H.StrToObject('<?=toJson($row)?>');
+    let data = <?= toJson($row ?? (object) []) ?>;
 
     async function showAlert(message, type) {
         const alertBox = document.getElementById("response-alert");
@@ -322,33 +330,46 @@
         }
     }
 
+    function toggleBirthPlaceText() {
+        const country = document.querySelector('[name="birth_place_country_id"]').value;
+        const district = document.querySelector('[name="birth_place_district_id"]').value;
+        const wrapper = document.getElementById("birth_place_text_wrapper");
+        if (wrapper) wrapper.classList.toggle("d-none", country === "ID" && district !== "99" && district !== "");
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
         const countrySelect = document.querySelector('[name="birth_place_country_id"]');
         const provinceSelect = document.querySelector('[name="birth_place_province_id"]');
+        const districtSelect = document.querySelector('[name="birth_place_district_id"]');
         const submitBtn = document.querySelector('[name="submit"]');
 
         if (data.birth_place_country_id === "ID") {
             await renderProvinces();
             if (data.birth_place_province_id) await renderDistricts(data.birth_place_province_id);
         }
+        toggleBirthPlaceText();
 
         countrySelect.addEventListener("change", async () => {
             if (countrySelect.value === "ID") {
                 await renderProvinces();
             } else {
                 provinceSelect.innerHTML = '<option value="99">Lainnya</option>';
-                document.querySelector('[name="birth_place_district_id"]').innerHTML = '<option value="99">Lainnya</option>';
+                districtSelect.innerHTML = '<option value="99">Lainnya</option>';
             }
+            toggleBirthPlaceText();
         });
 
         provinceSelect.addEventListener("change", async () => {
             await renderDistricts(provinceSelect.value);
+            toggleBirthPlaceText();
         });
+
+        districtSelect.addEventListener("change", toggleBirthPlaceText);
 
         if (submitBtn) {
             const inputNames = [
                 "full_name", "nik", "npwp", "gender", "citizenship",
-                "birth_place_country_id", "birth_place_province_id", "birth_place_district_id",
+                "birth_place_country_id", "birth_place_province_id", "birth_place_district_id", "birth_place",
                 "birth_date", "mother_name", "religion_id", "kps_receiver", "kps"
             ];
 
@@ -376,13 +397,14 @@
                             await renderProvinces();
                             if (data.birth_place_province_id) await renderDistricts(data.birth_place_province_id);
                         } else {
-                            countrySelect.value = "99";
+                            countrySelect.value = data.birth_place_country_id || "99";
                             provinceSelect.innerHTML = '<option value="99">Lainnya</option>';
-                            document.querySelector('[name="birth_place_district_id"]').innerHTML = '<option value="99">Lainnya</option>';
+                            districtSelect.innerHTML = '<option value="99">Lainnya</option>';
                         }
+                        toggleBirthPlaceText();
                     }
 
-                    showAlert(res.message || Object.values(res.errors || {}).join("<br/>"), messageType);
+                    showAlert(H.Esc(res.message || "") || Object.values(res.errors || {}).map(H.Esc).join("<br/>"), messageType);
                 } catch (error) {
                     console.error("Submission error:", error);
                     showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

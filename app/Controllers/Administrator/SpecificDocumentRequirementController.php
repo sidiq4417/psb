@@ -84,6 +84,26 @@ class SpecificDocumentRequirementController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        $rules = [
+            'admission_offering_id' => [
+                'label' => 'Pembukaan Pendaftaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[admission_offerings.id]',
+                'errors' => ['is_not_unique' => 'Pembukaan Pendaftaran tidak ditemukan.'],
+            ],
+            'document_id' => [
+                'label' => 'Dokumen',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[admission_documents.id]',
+                'errors' => ['is_not_unique' => 'Dokumen tidak ditemukan.'],
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
         $id = (int)($this->request->getPost('id') ?? 0);
         $model = new DocumentRequirementModel();
         $actor = (int)session()->get('actor');
@@ -92,7 +112,8 @@ class SpecificDocumentRequirementController extends BaseController
         $data = [
             'admission_offering_id' => $admission_offering_id,
             'document_id' => $document_id,
-            'required' => (bool)$this->request->getPost('required'),
+            // FormBuilder posts checkbox values as "true"/"false".
+            'required' => filter_var($this->request->getPost('required'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
         ];
         $unique_id = 'offering_document_requirement:' . $admission_offering_id . ':' . $document_id;
 

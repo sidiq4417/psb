@@ -82,8 +82,8 @@ class SubjectController extends BaseController
 
         $validation->setRules([
             'name' => [
-                'label' => 'Subject Name',
-                'rules' => 'required',
+                'label' => 'Nama Mata Pelajaran',
+                'rules' => 'required|max_length[255]',
             ],
         ]);
 

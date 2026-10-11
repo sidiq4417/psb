@@ -274,25 +274,35 @@
 
     function updateProgress() {
         const total = subjects.length;
-        const filled = subjects.filter(s => s.score > 0).length;
+        const filled = subjects.filter(s => parseFloat(s.score) > 0).length;
         const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
         document.getElementById("progressCount").textContent = `${filled}/${total}`;
         document.getElementById("progressBar").style.width = pct + "%";
     }
 
     async function saveScore(input, subjectId) {
-        input.classList.add("saving");
-        const score = parseInt(input.value) || 0;
+        const raw = input.value.trim().replace(",", ".");
+        const subj = subjects.find(s => s.subject_id === subjectId);
+        const current = subj ? (parseFloat(subj.score) || 0) : 0;
+        const score = raw === "" ? 0 : parseFloat(raw);
 
+        if (raw !== "" && (!/^\d{1,3}(\.\d{1,2})?$/.test(raw) || isNaN(score) || score < 0 || score > 100)) {
+            showToast("Nilai harus berupa angka 0 sampai 100 dengan maksimal 2 angka desimal", "error");
+            input.classList.add("is-invalid");
+            return;
+        }
+        input.classList.remove("is-invalid");
+        if (score === current) return;
+
+        input.classList.add("saving");
         try {
             const res = await fetchData(_BASE_URL + "students/subject-grade-requirements/save", JSON.stringify({
                 subject_id: subjectId,
-                score: score
+                score: raw === "" ? "0" : raw
             }));
 
             if (res.success) {
-                const subj = subjects.find(s => s.subject_id === subjectId);
-                if (subj) subj.score = score;
+                if (subj) subj.score = typeof res.score === "number" ? res.score : score;
                 renderCards();
                 updateProgress();
                 showToast("Nilai tersimpan", "success");
@@ -326,7 +336,8 @@
 
         subjects.forEach((s, i) => {
             const icon = icons[i % icons.length];
-            const hasScore = s.score > 0;
+            const hasScore = parseFloat(s.score) > 0;
+            const subjectId = parseInt(s.subject_id) || 0;
             const disabled = isSubmitted ? "disabled" : "";
 
             html += `
@@ -337,19 +348,21 @@
                                 <i class="${icon}" style="font-size: 1.25rem;"></i>
                             </div>
                             <div class="subject-info">
-                                <div class="subject-name">${s.subject_name}</div>
-                                <div class="subject-threshold">Minimal ${s.threshold_score || 0}</div>
+                                <div class="subject-name">${H.Esc(s.subject_name)}</div>
+                                <div class="subject-threshold">Minimal ${H.Esc(s.threshold_score || 0)}</div>
                             </div>
                             <div class="subject-input">
                                 <div class="input-group">
                                     <input type="number"
-                                        value="${s.score || ""}"
+                                        value="${hasScore ? H.Esc(parseFloat(s.score)) : ""}"
                                         ${disabled}
-                                        onfocusout="saveScore(this, ${s.subject_id})"
+                                        onfocusout="saveScore(this, ${subjectId})"
                                         class="form-control ${hasScore ? 'is-valid' : ''}"
                                         placeholder="0"
                                         min="0"
-                                        max="100">
+                                        max="100"
+                                        step="0.01"
+                                        inputmode="decimal">
                                 </div>
                             </div>
                             <div class="status-icon">

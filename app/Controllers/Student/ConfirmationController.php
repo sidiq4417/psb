@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Student;
 
+use App\Models\AdmissionOfferingModel;
 use App\Models\ApplicationSettingModel;
 use App\Models\RegistrationDocumentModel;
 use App\Models\RegistrationExamScoreModel;
@@ -76,6 +77,8 @@ class ConfirmationController extends BaseController
         $vars['admission_pathways'] = toJson(admission_pathways());
         $vars['educations'] = toJson(educations());
         $vars['summaries'] = $summaries;
+        $vars['allow_multiple'] = new ApplicationSettingModel()->isMultiRegistrationEnabled();
+        $vars['unsubmitted_count'] = count($registrationModel->findUnsubmittedByStudent((int)session()->get('actor')));
 
         return view('students/confirmation', $vars);
     }
@@ -91,9 +94,13 @@ class ConfirmationController extends BaseController
 
     public function details(): ?ResponseInterface
     {
-        $input = $this->request->getJSON(true);
+        $input = $this->request->getJSON(true) ?? [];
         $id = (int)($input['id'] ?? 0);
         $registration = new RegistrationModel();
+        $data = $registration->findActiveById($id);
+        if (!$data || (int)$data->student_id !== (int)session()->get('actor')) {
+            throw PageNotFoundException::forPageNotFound();
+        }
         $query = $registration->findDetailsById($id);
 
         return $this->response->setJSON([
@@ -122,7 +129,7 @@ class ConfirmationController extends BaseController
                 'message' => 'Unauthorized.'
             ]);
         }
-        if (($data->submitted_at ?? '') !== '') {
+        if ((int)($data->submitted ?? 0) === 1 || ($data->submitted_at ?? '') !== '') {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Pendaftaran yang sudah disubmit tidak dapat dibatalkan!',
@@ -142,22 +149,14 @@ class ConfirmationController extends BaseController
         $gradeModel = new RegistrationSubjectGradeModel();
         $docModel = new RegistrationDocumentModel();
 
-        if (!empty($siblings)) {
-            $sibling_ids = array_map(fn($r) => (int)$r->id, $siblings);
-            $grades = $gradeModel->findByRegistrationId($id);
-            foreach ($grades as $g) {
-                foreach ($sibling_ids as $sid) {
-                    $gradeModel->copyFromRegistration($id, $sid);
-                }
-            }
-
-            $docs = $docModel->findByRegistrationId($id);
-            foreach ($docs as $d) {
-                foreach ($sibling_ids as $sid) {
-                    $docModel->copyFromRegistration($id, $sid);
-                }
-            }
+        foreach ($siblings as $sibling) {
+            $sibling_id = (int)$sibling->id;
+            $gradeModel->copyFromRegistration($id, $sibling_id);
+            $docModel->copyFromRegistration($id, $sibling_id);
         }
+
+        $stored_files = array_map(fn($d) => (string)($d->file ?? ''), $docModel->findByRegistrationId($id));
+        $stored_files[] = (string)($data->transfer_proof ?? '');
 
         $db = db_connect();
         $db->transStart();
@@ -166,6 +165,7 @@ class ConfirmationController extends BaseController
             'admission_offering_id' => 0,
             'admission_fee' => 0,
             'transfer_proof' => null,
+            'transfer_proof_uploaded_at' => null,
             'transfer_proof_verified' => 0,
             'is_deleted' => 1,
             'deleted_by' => $actor,
@@ -175,6 +175,16 @@ class ConfirmationController extends BaseController
         $docModel->deleteByRegistrationId($id);
         new RegistrationExamScoreModel()->deleteByRegistrationId($id);
         $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Gagal membatalkan pendaftaran. Silakan coba lagi.',
+            ]);
+        }
+
+        $docModel->deleteUnreferencedFiles($stored_files);
+
         return $this->response->setJSON([
             'id' => $id,
             'success' => true,
@@ -183,14 +193,16 @@ class ConfirmationController extends BaseController
     }
 
     /**
+     * Finalise all of the student's unsubmitted registrations under one shared
+     * registration number. Nothing is submitted unless every registration is
+     * complete.
+     *
      * @throws ReflectionException
      */
     public function submitAll(): ResponseInterface
     {
         $student_id = (int) session()->get('actor');
         $registrationModel = new RegistrationModel();
-        $gradeModel = new RegistrationSubjectGradeModel();
-        $docModel = new RegistrationDocumentModel();
 
         $registrations = $registrationModel->findUnsubmittedByStudent($student_id);
 
@@ -202,102 +214,53 @@ class ConfirmationController extends BaseController
         }
 
         $errors = [];
-        $submitted_ids = [];
-        $shared_number = null;
-        $shared_year = 0;
-
-        $db = db_connect();
-        $db->transStart();
-
         foreach ($registrations as $reg) {
-            $id = (int)$reg->id;
-            $admission_year = (int)($reg->admission_year ?? $registrationModel->getAdmissionYearByStudent($student_id));
-
-            if ($shared_number === null) {
-                $shared_year = $admission_year;
-                $shared_number = $registrationModel->generateRegistrationNumber($shared_year);
+            $error = $this->findSubmitError($registrationModel, $reg, $student_id);
+            if ($error !== null) {
+                $errors[] = $this->registrationLabel($registrationModel, (int)$reg->id) . ': ' . $error;
             }
-
-            $grade_count = $gradeModel->countByRegistrationId($id);
-            if ($grade_count === 0) {
-                $source_reg = $registrationModel->findLatestUnsubmitted($student_id, $id);
-                if ($source_reg) {
-                    $gradeModel->transferToRegistration((int)$source_reg->id, $id);
-                }
-                $grade_count = $gradeModel->countByRegistrationId($id);
-            }
-            if ($grade_count === 0) {
-                $errors[] = 'Nilai rapor belum diinisialisasi.';
-                continue;
-            }
-            if ($gradeModel->hasEmptyGrade($id)) {
-                $errors[] = 'Harap lengkapi semua nilai rapor.';
-                continue;
-            }
-
-            $doc_count = $docModel->countByRegistrationId($id);
-            if ($doc_count === 0) {
-                $source_reg = $registrationModel->findLatestUnsubmitted($student_id, $id);
-                if ($source_reg) {
-                    $docModel->copyFromRegistration((int)$source_reg->id, $id);
-                }
-                $doc_count = $docModel->countByRegistrationId($id);
-            }
-            if ($doc_count === 0) {
-                $errors[] = 'Persyaratan dokumen belum diinisialisasi.';
-                continue;
-            }
-            if ($docModel->hasEmptyFile($id)) {
-                $errors[] = 'Harap unggah semua dokumen wajib.';
-                continue;
-            }
-
-            $registrationModel->update($id, [
-                'admission_year' => $shared_year,
-                'registration_number' => $shared_number,
-                'submitted' => 1,
-                'submitted_at' => date('Y-m-d H:i:s'),
-                'submitted_by' => $student_id,
-            ]);
-            $submitted_ids[] = $id;
         }
 
-        $db->transComplete();
-
-        if (empty($submitted_ids)) {
+        if (!empty($errors)) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Tidak ada pendaftaran yang berhasil disubmit. ' . implode(' ', $errors)
+                'message' => 'Belum ada pendaftaran yang dikirim final. ' . implode(' ', $errors),
+                'errors' => $errors,
             ]);
         }
 
-        $has_errors = !empty($errors);
-        $message = count($submitted_ids) . ' pendaftaran berhasil disubmit.';
-        if ($has_errors) {
-            $message .= ' ' . implode(' ', $errors);
+        $shared_year = (int)($registrations[0]->admission_year ?? 0);
+        if ($shared_year <= 0) {
+            $shared_year = $registrationModel->getAdmissionYearByStudent($student_id);
+        }
+
+        $ids = array_map(fn($r) => (int)$r->id, $registrations);
+        $shared_number = $registrationModel->submitRegistrations($ids, $shared_year, $student_id);
+        if ($shared_number === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Gagal mengirim pendaftaran. Silakan coba lagi.'
+            ]);
         }
 
         return $this->response->setJSON([
-            'success' => !$has_errors,
-            'message' => $message,
-            'submitted_ids' => $submitted_ids,
+            'success' => true,
+            'message' => count($ids) . ' pendaftaran berhasil dikirim final dengan No. Registrasi ' . $shared_number . '.',
+            'submitted_ids' => $ids,
+            'registration_number' => $shared_number,
         ]);
     }
 
     /**
+     * Finalise a single registration.
+     *
      * @throws ReflectionException
      */
     public function submit(): ?ResponseInterface
     {
+        $student_id = (int) session()->get('actor');
         $registrationModel = new RegistrationModel();
-        $admission_year = $registrationModel->getAdmissionYearByStudent((int) session()->get('actor'));
-        if ($admission_year <= 0) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Sistem pendaftaran aktif tidak ditemukan.'
-            ]);
-        }
-        $input = $this->request->getJSON(true);
+        $input = $this->request->getJSON(true) ?? [];
         $id = (int)($input['id'] ?? 0);
         $data = $registrationModel->findActiveById($id);
         if (!$data) {
@@ -307,97 +270,171 @@ class ConfirmationController extends BaseController
             ]);
         }
 
-        $student_id = (int)($data->student_id ?? 0);
-        if ($student_id !== (int)session()->get('actor')) {
+        if ((int)($data->student_id ?? 0) !== $student_id) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Unauthorized.'
             ]);
         }
 
-        $gradeModel = new RegistrationSubjectGradeModel();
-        $docModel = new RegistrationDocumentModel();
-
-        $grade_count = $gradeModel->countByRegistrationId($id);
-        if ($grade_count === 0) {
-            $source_reg = $registrationModel->findLatestUnsubmitted($student_id, $id);
-            if ($source_reg) {
-                $gradeModel->transferToRegistration((int)$source_reg->id, $id);
-                $grade_count = $gradeModel->countByRegistrationId($id);
-            }
-        }
-        if ($grade_count === 0) {
+        if ((int)($data->submitted ?? 0) === 1) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Data nilai rapor belum diinisialisasi. Silakan buka menu Nilai Rapor.'
-            ]);
-        }
-        if ($gradeModel->hasEmptyGrade($id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Harap lengkapi semua nilai rapor sebelum melakukan submit final.'
+                'message' => 'Pendaftaran ini sudah dikirim final.'
             ]);
         }
 
-        $doc_count = $docModel->countByRegistrationId($id);
-        if ($doc_count === 0) {
-            $source_reg = $registrationModel->findLatestUnsubmitted($student_id, $id);
-            if ($source_reg) {
-                $docModel->copyFromRegistration((int)$source_reg->id, $id);
-                $doc_count = $docModel->countByRegistrationId($id);
-            }
+        $admission_year = (int)($data->admission_year ?? 0);
+        if ($admission_year <= 0) {
+            $admission_year = $registrationModel->getAdmissionYearByStudent($student_id);
         }
-        if ($doc_count === 0) {
+        if ($admission_year <= 0) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Persyaratan dokumen belum diinisialisasi. Silakan buka menu Berkas Pendaftaran.'
-            ]);
-        }
-        if ($docModel->hasEmptyFile($id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Harap unggah semua dokumen wajib sebelum melakukan submit final.'
+                'message' => 'Sistem pendaftaran aktif tidak ditemukan.'
             ]);
         }
 
-        $db = db_connect();
-        $db->transStart();
-        $registration_number = $registrationModel->generateRegistrationNumber($admission_year);
-        $registrationModel->update($id, [
-            'admission_year' => $admission_year,
-            'registration_number' => $registration_number,
-            'submitted' => 1,
-            'submitted_at' => date('Y-m-d H:i:s'),
-            'submitted_by' => session()->get('actor'),
-        ]);
-        $db->transComplete();
+        $error = $this->findSubmitError($registrationModel, $data, $student_id);
+        if ($error !== null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $error
+            ]);
+        }
+
+        $registration_number = $registrationModel->submitRegistrations([$id], $admission_year, $student_id);
+        if ($registration_number === null) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Gagal mengirim pendaftaran. Silakan coba lagi.'
+            ]);
+        }
+
         return $this->response->setJSON([
             'id' => $id,
             'success' => true,
-            'message' => 'Updated successfully.',
+            'message' => 'Pendaftaran berhasil dikirim final dengan No. Registrasi ' . $registration_number . '.',
+            'registration_number' => $registration_number,
         ]);
     }
 
     /**
+     * Check whether a registration may be finalised.
+     *
+     * The admission period must still be open, every required subject grade
+     * must have a score and every required document (general + offering
+     * specific, the same list shown on the student pages) must be uploaded.
+     * Grades and documents of the student's other unsubmitted registration are
+     * copied first, because the student pages fill all registrations at once.
+     *
+     * @param RegistrationModel $registrationModel The registration model.
+     * @param object            $registration      The registration row.
+     * @param int               $student_id        The logged-in student.
+     * @return string|null The reason it cannot be submitted, or null when ready.
+     * @throws ReflectionException
+     */
+    private function findSubmitError(RegistrationModel $registrationModel, object $registration, int $student_id): ?string
+    {
+        $id = (int)$registration->id;
+        $offering_id = (int)($registration->admission_offering_id ?? 0);
+        if ($offering_id <= 0) {
+            return 'Program pendaftaran belum dipilih.';
+        }
+
+        if (!new AdmissionOfferingModel()->isOpen($offering_id)) {
+            return 'Periode pendaftaran untuk program ini sudah ditutup.';
+        }
+
+        $gradeModel = new RegistrationSubjectGradeModel();
+        $docModel = new RegistrationDocumentModel();
+
+        $source_reg = $registrationModel->findLatestUnsubmitted($student_id, $id);
+        if ($source_reg) {
+            $gradeModel->copyFromRegistration((int)$source_reg->id, $id);
+            $docModel->copyFromRegistration((int)$source_reg->id, $id);
+        }
+
+        $missing_scores = $gradeModel->findMissingScores($id, $offering_id);
+        if (!empty($missing_scores)) {
+            return 'Harap lengkapi nilai rapor sebelum melakukan submit final (' . implode(', ', $missing_scores) . ').';
+        }
+
+        $missing_documents = $docModel->findMissingRequired($id, $offering_id);
+        if (!empty($missing_documents)) {
+            return 'Harap unggah semua dokumen wajib sebelum melakukan submit final (' . implode(', ', $missing_documents) . ').';
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a short human-readable label for a registration.
+     *
+     * @param RegistrationModel $registrationModel The registration model.
+     * @param int               $id                The registration ID.
+     * @return string The label, e.g. "SMP - Kelas 7 - Reguler".
+     */
+    private function registrationLabel(RegistrationModel $registrationModel, int $id): string
+    {
+        $details = $registrationModel->findDetailsById($id)->getRow();
+        $parts = array_filter([
+            (string)($details->branch ?? ''),
+            (string)($details->entry_grade ?? ''),
+            (string)($details->education_track ?? ''),
+        ], fn($v) => $v !== '');
+        return empty($parts) ? 'Pendaftaran #' . $id : implode(' - ', $parts);
+    }
+
+    /**
+     * Upload or replace the transfer proof of a registration.
+     *
      * @throws ReflectionException
      */
     public function upload(): ResponseInterface
     {
         $id = (int) $this->request->getPost('id');
-        $file = $this->request->getFile('file');
+        $student_id = (int) session()->get('actor');
 
+        $registrationModel = new RegistrationModel();
+        $data = $registrationModel->findActiveById($id);
+        if (!$data) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['registration' => 'Data pendaftaran tidak ditemukan.']
+            ]);
+        }
+
+        if ((int)$data->student_id !== $student_id) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['registration' => 'Unauthorized.']
+            ]);
+        }
+
+        if ((int)($data->transfer_proof_verified ?? 0) === 1) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['registration' => 'Bukti pembayaran sudah diverifikasi dan tidak dapat diganti.']
+            ]);
+        }
+
+        $file = $this->request->getFile('file');
         if (!$file) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['file' => 'No file uploaded.']
+                'errors' => ['file' => 'Tidak ada file yang diunggah.']
             ]);
         }
 
         $validated = $this->validate([
             'file' => [
-                'uploaded[file]',
-                'mime_in[file,image/jpg,image/jpeg,image/gif,image/png,application/pdf]',
-                'max_size[file,2048]',
+                'label' => 'Bukti Transfer',
+                'rules' => [
+                    'uploaded[file]',
+                    'mime_in[file,image/jpg,image/jpeg,image/gif,image/png,application/pdf]',
+                    'max_size[file,2048]',
+                ],
             ],
         ]);
 
@@ -408,51 +445,52 @@ class ConfirmationController extends BaseController
             ]);
         }
 
-        if ($file->isValid() && !$file->hasMoved()) {
-            $uploadPath = FCPATH . 'uploads/';
-            $newName = $file->getRandomName();
-
-            try {
-                $file->move($uploadPath, $newName);
-            } catch (Throwable $e) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'errors' => ['upload' => 'Failed to move file: ' . $e->getMessage()]
-                ]);
-            }
-
-            $registrationModel = new RegistrationModel();
-            $data = $registrationModel->findActiveById($id);
-            if (!$data) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'errors' => ['registration' => 'Registration not found.']
-                ]);
-            }
-
-            if ((int)$data->student_id !== (int)session()->get('actor')) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'errors' => ['registration' => 'Unauthorized.']
-                ]);
-            }
-
-            $registrationModel->update($id, [
-                'transfer_proof' => $newName,
-            ]);
+        if (!$file->isValid() || $file->hasMoved()) {
             return $this->response->setJSON([
-                'id' => $id,
-                'success' => true,
-                'message' => 'Updated successfully.',
+                'success' => false,
+                'errors' => [
+                    'code' => 500,
+                    'message' => $file->getErrorString()
+                ]
             ]);
         }
 
+        $uploadPath = private_upload_path();
+        $newName = $file->getRandomName();
+
+        try {
+            $file->move($uploadPath, $newName);
+        } catch (Throwable $e) {
+            log_message('error', 'Transfer proof upload failed: {message}', ['message' => $e->getMessage()]);
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['upload' => 'Gagal menyimpan file. Silakan coba lagi.']
+            ]);
+        }
+
+        $registrationModel->where('transfer_proof_verified', 0)->update($id, [
+            'transfer_proof' => $newName,
+            'transfer_proof_uploaded_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        if (db_connect()->affectedRows() < 1) {
+            @unlink($uploadPath . $newName);
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['registration' => 'Bukti pembayaran tidak dapat disimpan. Silakan muat ulang halaman.']
+            ]);
+        }
+
+        $old_file = trim((string)($data->transfer_proof ?? ''));
+        if ($old_file !== '' && $old_file !== $newName) {
+            new RegistrationDocumentModel()->deleteUnreferencedFiles([$old_file]);
+        }
+
         return $this->response->setJSON([
-            'success' => false,
-            'errors' => [
-                'code' => 500,
-                'message' => $file->getErrorString()
-            ]
+            'id' => $id,
+            'success' => true,
+            'message' => 'Bukti pembayaran berhasil diunggah.',
+            'file_name' => $newName,
         ]);
     }
 
@@ -471,9 +509,9 @@ class ConfirmationController extends BaseController
             throw PageNotFoundException::forPageNotFound('File not found.');
         }
 
-        $filePath = FCPATH . 'uploads/' . $safeName;
-        if (!is_file($filePath)) {
-            throw PageNotFoundException::forPageNotFound('File not found: ' . $safeName);
+        $filePath = find_registration_file($safeName);
+        if ($filePath === null) {
+            throw PageNotFoundException::forPageNotFound('File not found.');
         }
 
         return $this->response->download($filePath, null)->setFileName($safeName);
@@ -518,7 +556,7 @@ class ConfirmationController extends BaseController
         ]);
 
         $pdf = new PDF();
-        $file_name = 'FORMULIR-PENERIMAAN-MURID-BARU-' . $shared_number . '-' . time() . '.pdf';
+        $file_name = 'FORMULIR-PENERIMAAN-SANTRI-BARU-' . $shared_number . '-' . time() . '.pdf';
 
         $content = $pdf->render($html, $shared_number, $file_name);
 

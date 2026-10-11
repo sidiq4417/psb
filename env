@@ -25,6 +25,14 @@
 # app.forceGlobalSecureRequests = false
 # app.CSPEnabled = false
 
+# Production hardening (site served over HTTPS, e.g. https://psb.alfathsolobaru.com/):
+# - forceGlobalSecureRequests redirects every http:// request to https:// and
+#   sends the Strict-Transport-Security header.
+# - cookie.secure makes the browser send the session and CSRF cookies over HTTPS only.
+# Only enable both once HTTPS (SSL certificate) is active, otherwise login stops working.
+# app.forceGlobalSecureRequests = true
+# cookie.secure = true
+
 #--------------------------------------------------------------------
 # DATABASE
 #--------------------------------------------------------------------

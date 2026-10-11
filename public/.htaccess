@@ -11,6 +11,10 @@ Options -Indexes
 	Options +FollowSymlinks
 	RewriteEngine On
 
+	# Deny HTTP access to the application folder ("spmb/" holds app, vendor,
+	# writable and .env in the shared-hosting layout). Harmless if it does not exist.
+	RewriteRule ^spmb(?:/|$) - [F,L]
+
 	# If you installed CodeIgniter in a subfolder, you will need to
 	# change the following line to match the subfolder you need.
 	# http://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewritebase

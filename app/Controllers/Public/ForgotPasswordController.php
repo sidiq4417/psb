@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controllers\Public;
 
-use App\Models\UserModel;
+use App\Models\ApplicationSettingModel;
 use App\Controllers\BaseController;
+use App\Services\MailService;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Database;
 use Config\Services;
@@ -89,10 +90,17 @@ class ForgotPasswordController extends BaseController
             }
         }
 
-        $email = $input['email'] ?? '';
+        $email = trim((string) ($input['email'] ?? ''));
 
-        $user = new UserModel();
-        $user_id = $user->findUserIdByEmail($email);
+        // Looked up here (not via UserModel::findUserIdByEmail, which returns the ID as a string
+        // and fails its int return type) so a registered email cannot be told apart by an error.
+        $row = Database::connect()->table('users')
+            ->select('id')
+            ->where('is_deleted', false)
+            ->where('email', $email)
+            ->get()
+            ->getRow();
+        $user_id = (int) ($row->id ?? 0);
 
         if ($user_id > 0) {
             // Generate secure random token
@@ -114,54 +122,30 @@ class ForgotPasswordController extends BaseController
      * Send Reset Password Link via email.
      *
      * @param int $user_id The user identifier.
-     * @param string $token The reset token.
+     * @param string $token The reset token (plain text; only its hash is stored).
      * @return void
      */
     private function sendResetPasswordLink(int $user_id, string $token): void
     {
         $db = Database::connect();
         $user_data = $db->table('users')->where('id', $user_id)->get()->getRow();
-        $setting = $db->table('application_settings')->get()->getRow();
+        $setting = new ApplicationSettingModel()->getSetting();
 
-        if (!$user_data || !$setting) {
-            log_message('error', 'ForgotPassword: user or settings not found.');
+        if (!$user_data) {
+            log_message('error', 'ForgotPassword: user not found.');
             return;
         }
-
-        $school_name = $setting->institution_name ?? 'University';
-        $email = Services::email();
-
-        $config = [
-            'protocol' => 'smtp',
-            'SMTPHost' => $setting->smtp_host,
-            'SMTPUser' => $setting->smtp_user,
-            'SMTPPass' => $setting->smtp_pass,
-            'SMTPPort' => (int)$setting->smtp_port,
-            'mailType' => 'html',
-            'charset' => 'UTF-8',
-        ];
-
-        $email->initialize($config);
-        $email->setFrom($setting->email, 'PMB ' . mb_strtoupper($school_name));
-        $targetMail = $user_data->email;
-        if (ENVIRONMENT === 'development') {
-            $targetMail = 'rector.indonesia@gmail.com';
-        }
-        $email->setTo($targetMail);
 
         $data = [
             'full_name' => $user_data->full_name,
             'email' => $user_data->email,
-            'school_name' => $school_name,
-            'reset_password_link' => base_url('reset-password/' . $token),
+            'school_name' => (string) ($setting->institution_name ?? ''),
+            'reset_password_link' => site_url('reset-password/' . $token),
         ];
 
         $message = view('emails/reset-password', $data);
-        $email->setSubject('Notifikasi Permintaan Pengaturan Ulang Kata Sandi');
-        $email->setMessage($message);
-
-        if (!$email->send()) {
-            log_message('error', 'ForgotPassword: email failed to send. ' . $email->printDebugger(['headers', 'subject']));
+        if (!new MailService()->send((string) $user_data->email, 'Notifikasi Permintaan Pengaturan Ulang Kata Sandi', $message)) {
+            log_message('error', 'ForgotPassword: reset email could not be sent for user ' . $user_id . '.');
         }
     }
 

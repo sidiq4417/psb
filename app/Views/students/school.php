@@ -109,7 +109,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="nisn" type="text" class="form-control" name="nisn"
-                               value="<?= $row->nisn ?? '' ?>" placeholder="NISN"
+                               value="<?= esc($row->nisn ?? '', 'attr') ?>" placeholder="NISN"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="nisn">NISN</label>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="npsn" type="text" class="form-control" name="npsn"
-                               value="<?= $row->npsn ?? '' ?>" placeholder="NPSN"
+                               value="<?= esc($row->npsn ?? '', 'attr') ?>" placeholder="NPSN"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="npsn">NPSN</label>
                     </div>
@@ -125,7 +125,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="school_name" type="text" class="form-control" name="school_name"
-                               value="<?= $row->school_name ?? '' ?>" placeholder="Nama Sekolah"
+                               value="<?= esc($row->school_name ?? '', 'attr') ?>" placeholder="Nama Sekolah"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="school_name">Nama Sekolah</label>
                     </div>
@@ -133,7 +133,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="school_major" type="text" class="form-control" name="school_major"
-                               value="<?= $row->school_major ?? '' ?>" placeholder="Jurusan"
+                               value="<?= esc($row->school_major ?? '', 'attr') ?>" placeholder="Jurusan"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="school_major">Jurusan / Program Studi</label>
                     </div>
@@ -151,7 +151,7 @@
                 <div class="col-md-8">
                     <div class="form-floating">
                         <input id="school_address" type="text" class="form-control" name="school_address"
-                               value="<?= $row->school_address ?? '' ?>" placeholder="Alamat Sekolah"
+                               value="<?= esc($row->school_address ?? '', 'attr') ?>" placeholder="Alamat Sekolah"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="school_address">Alamat Lengkap Sekolah</label>
                     </div>
@@ -159,7 +159,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="school_graduation_year" type="number" class="form-control" name="school_graduation_year"
-                               value="<?= $row->school_graduation_year ?? '' ?>" placeholder="Tahun Lulus"
+                               value="<?= esc($row->school_graduation_year ?? '', 'attr') ?>" placeholder="Tahun Lulus"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="school_graduation_year">Tahun Lulus</label>
                     </div>
@@ -225,7 +225,7 @@
                     });
                 }
 
-                showAlert(resData.message || Object.values(resData.errors || {}).join("<br/>"), messageType);
+                showAlert(H.Esc(resData.message || "") || Object.values(resData.errors || {}).map(H.Esc).join("<br/>"), messageType);
             } catch (error) {
                 console.error("Submission error:", error);
                 showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

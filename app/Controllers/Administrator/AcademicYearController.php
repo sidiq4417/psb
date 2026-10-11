@@ -88,7 +88,7 @@ class AcademicYearController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'name' => ['label' => 'Tahun Ajaran', 'rules' => 'required'],
+            'name' => ['label' => 'Tahun Ajaran', 'rules' => 'required|max_length[20]'],
             'start_date' => ['label' => 'Tanggal Mulai', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
             'end_date' => ['label' => 'Tanggal Akhir', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
         ];
@@ -101,10 +101,17 @@ class AcademicYearController extends BaseController
         }
 
         $id = (int)($this->request->getVar('id') ?? 0);
-        $name = $this->request->getVar('name');
-        $start_date = $this->request->getVar('start_date');
-        $end_date = $this->request->getVar('end_date');
+        $name = trim((string)$this->request->getVar('name'));
+        $start_date = (string)$this->request->getVar('start_date');
+        $end_date = (string)$this->request->getVar('end_date');
         $actor = (int)session()->get('actor');
+
+        if ($start_date !== '' && $end_date !== '' && $end_date < $start_date) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['end_date' => 'Tanggal Akhir tidak boleh sebelum Tanggal Mulai.'],
+            ]);
+        }
 
         if ($id > 0) {
             $this->model->update($id, [

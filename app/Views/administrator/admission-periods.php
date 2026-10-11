@@ -7,7 +7,7 @@
     <div class="card-body" id="ADMISSION_PERIODS"></div>
 </div>
 <script>
-    DS.AcademicYears = H.StrToObject('<?=$academic_years?>');
+    DS.AcademicYears = <?= $academic_years ?>;
     const _grid = "ADMISSION_PERIODS", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {
@@ -25,7 +25,7 @@
                 title: "Tahun Ajaran",
                 field: "academic_year_id",
                 formatter: function (row) {
-                    return DS.AcademicYears[row.academic_year_id];
+                    return H.Esc(DS.AcademicYears[row.academic_year_id]);
                 }
             },
             {title: "Kode", field: "code"},
@@ -33,7 +33,7 @@
             {title: "Mulai", field: "registration_start_at"},
             {title: "Akhir", field: "registration_end_at"},
             {title: "Biaya", field: "registration_fee", formatter: function(row) {
-                return row.registration_fee ? 'Rp ' + parseInt(row.registration_fee).toLocaleString('id-ID') : 'Gratis';
+                return row.registration_fee ? H.Esc('Rp ' + parseInt(row.registration_fee).toLocaleString('id-ID')) : 'Gratis';
             }},
         ],
         addAction: () => window[_form].onEdit(0)

@@ -7,7 +7,7 @@
     <div class="card-body" id="ENTRY_GRADES"></div>
 </div>
 <script>
-    DS.Branches = H.StrToObject('<?=$branches?>');
+    DS.Branches = <?= $branches ?>;
     const _grid = "ENTRY_GRADES", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {
@@ -25,7 +25,7 @@
                 title: "Cabang Sekolah",
                 field: "branch_id",
                 formatter: function (row) {
-                    return DS.Branches[row.branch_id];
+                    return H.Esc(DS.Branches[row.branch_id]);
                 }
             },
             {title: "Tingkat", field: "name"},

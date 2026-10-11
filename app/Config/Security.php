@@ -60,9 +60,11 @@ class Security extends BaseConfig
      *
      * Expiration time for Cross Site Request Forgery protection cookie.
      *
-     * Defaults to two hours (in seconds).
+     * 0 = until the browser is closed. The cookie is not renewed on activity, so a
+     * fixed lifetime (e.g. 7200) makes every AJAX save on a page that has been open
+     * longer than that fail until the page is reloaded.
      */
-    public int $expires = 7200;
+    public int $expires = 0;
 
     /**
      * --------------------------------------------------------------------------

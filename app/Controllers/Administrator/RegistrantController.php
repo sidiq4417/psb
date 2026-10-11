@@ -14,6 +14,7 @@ use App\Models\RegistrationModel;
 use App\Models\UserModel;
 use App\Traits\DataTrait;
 use App\Libraries\PDF;
+use App\Libraries\Remember;
 use App\Controllers\BaseController;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -138,32 +139,50 @@ class RegistrantController extends BaseController
 
         $grade_map = [];
         if (!empty($ids)) {
-            $grades_rows = $db->table('registration_subject_grades')
-                ->whereIn('registration_id', $ids)
+            $grades_rows = $db->table('registration_subject_grades g')
+                ->select('g.registration_id, g.subject_id, g.score, g.threshold_score, s.name AS subject_name')
+                ->join('subjects s', 's.id = g.subject_id', 'left')
+                ->whereIn('g.registration_id', $ids)
                 ->get()
                 ->getResult();
             foreach ($grades_rows as $g) {
+                $g->score = $g->score !== null ? (float)$g->score : null;
+                $g->threshold_score = $g->threshold_score !== null ? (float)$g->threshold_score : null;
                 $grade_map[(int)$g->registration_id][] = $g;
             }
         }
 
         $doc_map = [];
+        $transfer_proofs = [];
         if (!empty($ids)) {
-            $doc_rows = $db->table('registration_documents')
-                ->whereIn('registration_id', $ids)
+            $doc_rows = $db->table('registration_documents d')
+                ->select('d.registration_id, d.document_id, d.file AS file_name, d.verified, a.name AS document_name')
+                ->join('admission_documents a', 'a.id = d.document_id', 'left')
+                ->whereIn('d.registration_id', $ids)
                 ->get()
                 ->getResult();
             foreach ($doc_rows as $d) {
                 $doc_map[(int)$d->registration_id][] = $d;
+            }
+
+            $proof_rows = $db->table('registrations')
+                ->select('id, transfer_proof')
+                ->whereIn('id', $ids)
+                ->get()
+                ->getResult();
+            foreach ($proof_rows as $p) {
+                $transfer_proofs[(int)$p->id] = basename((string)($p->transfer_proof ?? ''));
             }
         }
 
         foreach ($records as &$row) {
             $row->submitted = (bool)$row->submitted;
             $row->transfer_proof_verified = (bool)$row->transfer_proof_verified;
+            $row->transfer_proof = $transfer_proofs[(int)$row->id] ?? '';
             $row->subject_grade_requirements = json_encode($grade_map[(int)$row->id] ?? []);
             $row->document_requirements = json_encode($doc_map[(int)$row->id] ?? []);
         }
+        unset($row);
 
         return $this->response->setJSON([
             'records' => $records
@@ -179,35 +198,66 @@ class RegistrantController extends BaseController
     public function save(): ResponseInterface
     {
         $id = (int) ($this->request->getVar('id') ?? 0);
-        $selection_status = (string)$this->request->getPost('selection_status');
-
-        $allowed_statuses = array_keys(registration_status());
-        if ($selection_status !== '' && !in_array($selection_status, $allowed_statuses, true)) {
+        $db = Database::connect();
+        $registration = $id > 0 ? $db->table('registrations')->select('id')->where('id', $id)->get()->getRow() : null;
+        if (!$registration) {
             return $this->response->setJSON([
+                'id' => $id,
                 'success' => false,
-                'message' => 'Status seleksi tidak valid.',
+                'message' => 'Data pendaftaran tidak ditemukan.',
             ]);
         }
 
-        $db = Database::connect();
-        $updateData = [
-            'submitted' => (bool)$this->request->getPost('submitted'),
-            'submitted_at' => (string)$this->request->getPost('submitted_at'),
-            'transfer_proof_verified' => (bool)$this->request->getPost('transfer_proof_verified'),
-            'transfer_proof_verified_at' => (string)$this->request->getPost('transfer_proof_verified_at'),
-            'selection_status' => $selection_status,
+        $statuses = implode(',', array_map('strval', array_keys(registration_status())));
+        $validation = service('validation');
+        $validation->setRules([
+            'submitted_at' => ['label' => 'Tanggal Konfirmasi Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'transfer_proof_verified_at' => ['label' => 'Tanggal Verifikasi Biaya Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
+            'selection_status' => [
+                'label' => 'Status Seleksi',
+                'rules' => 'permit_empty|in_list[' . $statuses . ']',
+                'errors' => ['in_list' => 'Status seleksi tidak valid.'],
+            ],
+            'selection_notes' => ['label' => 'Catatan Seleksi', 'rules' => 'permit_empty|max_length[5000]'],
+        ]);
+
+        $input = [
+            'submitted_at' => substr(trim((string)$this->request->getPost('submitted_at')), 0, 10),
+            'transfer_proof_verified_at' => substr(trim((string)$this->request->getPost('transfer_proof_verified_at')), 0, 10),
+            'selection_status' => (string)$this->request->getPost('selection_status'),
             'selection_notes' => (string)$this->request->getPost('selection_notes'),
+        ];
+        if (!$validation->run($input)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors(),
+            ]);
+        }
+
+        // FormBuilder posts checkbox values as "true"/"false".
+        $updateData = [
+            'submitted' => filter_var($this->request->getPost('submitted'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
+            'submitted_at' => $input['submitted_at'] !== '' ? $input['submitted_at'] : null,
+            'transfer_proof_verified' => filter_var($this->request->getPost('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
+            'transfer_proof_verified_at' => $input['transfer_proof_verified_at'] !== '' ? $input['transfer_proof_verified_at'] : null,
             'updated_by' => (int)session()->get('actor'),
         ];
+
+        // Selection fields are hidden (and not posted) until the registration is confirmed.
+        if ($this->request->getPost('selection_status') !== null) {
+            $updateData['selection_status'] = $input['selection_status'] !== '' ? $input['selection_status'] : '0';
+        }
+        if ($this->request->getPost('selection_notes') !== null) {
+            $updateData['selection_notes'] = $input['selection_notes'];
+        }
+
         $db->table('registrations')->where('id', $id)->update($updateData);
-        $success = $db->affectedRows() > 0;
-        $res = (object)[
+
+        return $this->response->setJSON([
             'id' => $id,
-            'success' => $success,
-            'message' => $success ? 'Updated successfully.' : 'Update failed.',
-            'errors' => $db->error(),
-        ];
-        return $this->response->setJSON($res);
+            'success' => true,
+            'message' => 'Data pendaftaran berhasil diperbarui.',
+        ]);
     }
 
     /**
@@ -357,11 +407,50 @@ class RegistrantController extends BaseController
             ]);
         }
 
+        $in_list = static fn(array $items): string => 'permit_empty|in_list[' . implode(',', array_map('strval', array_keys($items))) . ']';
+        $date_rule = ['rules' => 'permit_empty|valid_date[Y-m-d]'];
+
         $validation = service('validation');
         $validation->setRules([
-            'full_name' => ['label' => 'Nama Lengkap', 'rules' => 'required'],
-            'nik' => ['label' => 'NIK', 'rules' => 'required'],
-            'gender' => ['label' => 'Jenis Kelamin', 'rules' => 'required'],
+            'full_name' => UserModel::nameRule('Nama Lengkap'),
+            'nik' => [
+                'label' => 'NIK / No. Paspor',
+                'rules' => ['required', 'regex_match[/^[A-Za-z0-9]{5,20}$/]'],
+                'errors' => ['regex_match' => 'NIK harus 16 digit angka, atau No. Paspor 5-20 karakter huruf/angka.'],
+            ],
+            'npwp' => ['label' => 'NPWP', 'rules' => 'permit_empty|max_length[30]'],
+            'gender' => ['label' => 'Jenis Kelamin', 'rules' => 'required|in_list[' . implode(',', array_keys(gender())) . ']'],
+            'citizenship' => ['label' => 'Kewarganegaraan', 'rules' => $in_list(countries())],
+            'religion_id' => ['label' => 'Agama', 'rules' => $in_list(religions())],
+            'kps_receiver' => ['label' => 'Penerima KPS', 'rules' => 'permit_empty|in_list[0,1]'],
+            'kps' => ['label' => 'Nomor KPS', 'rules' => 'permit_empty|max_length[50]'],
+            'birth_date' => ['label' => 'Tanggal Lahir'] + $date_rule,
+            'father_birth_date' => ['label' => 'Tanggal Lahir Ayah'] + $date_rule,
+            'mother_birth_date' => ['label' => 'Tanggal Lahir Ibu'] + $date_rule,
+            'guardian_birth_date' => ['label' => 'Tanggal Lahir Wali'] + $date_rule,
+            'father_name' => UserModel::nameRule('Nama Ayah', false),
+            'mother_name' => UserModel::nameRule('Nama Ibu Kandung', false),
+            'guardian_name' => UserModel::nameRule('Nama Wali', false),
+            'father_nik' => ['label' => 'NIK Ayah', 'rules' => 'permit_empty|regex_match[/^[0-9]{16}$/]', 'errors' => ['regex_match' => 'NIK Ayah harus terdiri dari 16 digit angka.']],
+            'mother_nik' => ['label' => 'NIK Ibu', 'rules' => 'permit_empty|regex_match[/^[0-9]{16}$/]', 'errors' => ['regex_match' => 'NIK Ibu harus terdiri dari 16 digit angka.']],
+            'guardian_nik' => ['label' => 'NIK Wali', 'rules' => 'permit_empty|regex_match[/^[0-9]{16}$/]', 'errors' => ['regex_match' => 'NIK Wali harus terdiri dari 16 digit angka.']],
+            'residence_id' => ['label' => 'Jenis Tinggal', 'rules' => $in_list(residences())],
+            'transportation_id' => ['label' => 'Alat Transportasi', 'rules' => $in_list(transportations())],
+            'father_education_id' => ['label' => 'Pendidikan Ayah', 'rules' => $in_list(educations())],
+            'mother_education_id' => ['label' => 'Pendidikan Ibu', 'rules' => $in_list(educations())],
+            'guardian_education_id' => ['label' => 'Pendidikan Wali', 'rules' => $in_list(educations())],
+            'father_occupation_id' => ['label' => 'Pekerjaan Ayah', 'rules' => $in_list(occupations())],
+            'mother_occupation_id' => ['label' => 'Pekerjaan Ibu', 'rules' => $in_list(occupations())],
+            'guardian_occupation_id' => ['label' => 'Pekerjaan Wali', 'rules' => $in_list(occupations())],
+            'father_income_id' => ['label' => 'Penghasilan Ayah', 'rules' => $in_list(incomes())],
+            'mother_income_id' => ['label' => 'Penghasilan Ibu', 'rules' => $in_list(incomes())],
+            'guardian_income_id' => ['label' => 'Penghasilan Wali', 'rules' => $in_list(incomes())],
+            'rt' => ['label' => 'RT', 'rules' => 'permit_empty|regex_match[/^[0-9]{1,3}$/]'],
+            'rw' => ['label' => 'RW', 'rules' => 'permit_empty|regex_match[/^[0-9]{1,3}$/]'],
+            'post_code' => ['label' => 'Kode Pos', 'rules' => 'permit_empty|regex_match[/^[0-9]{5}$/]'],
+            'nisn' => ['label' => 'NISN', 'rules' => 'permit_empty|max_length[50]'],
+            'npsn' => ['label' => 'NPSN', 'rules' => 'permit_empty|max_length[50]'],
+            'school_graduation_year' => ['label' => 'Tahun Lulus', 'rules' => 'permit_empty|regex_match[/^[0-9]{4}$/]'],
         ]);
 
         $password = $this->request->getVar('password');
@@ -377,7 +466,7 @@ class RegistrantController extends BaseController
         }
 
         $strFields = [
-            'full_name', 'nik', 'npwp', 'citizenship', 'mother_name', 'kps',
+            'full_name', 'nik', 'npwp', 'citizenship', 'kps',
             'birth_place_country_id', 'birth_place_province_id', 'birth_place_district_id',
             'birth_date',
             'address_country_id', 'address_province_id', 'address_district_id', 'address_subdistrict_id',
@@ -386,7 +475,7 @@ class RegistrantController extends BaseController
             'father_nik', 'father_name', 'father_birth_date',
             'mother_nik', 'mother_name', 'mother_birth_date',
             'guardian_nik', 'guardian_name', 'guardian_birth_date',
-            'nisn', 'npsn', 'school_name', 'school_address', 'school_major',
+            'nisn', 'npsn', 'school_name', 'school_address', 'school_major', 'school_graduation_year',
         ];
 
         $intFields = [
@@ -394,26 +483,28 @@ class RegistrantController extends BaseController
             'father_education_id', 'father_occupation_id', 'father_income_id',
             'mother_education_id', 'mother_occupation_id', 'mother_income_id',
             'guardian_education_id', 'guardian_occupation_id', 'guardian_income_id',
-            'school_graduation_year',
         ];
+
+        $dateFields = ['birth_date', 'father_birth_date', 'mother_birth_date', 'guardian_birth_date'];
 
         $data = [];
         foreach ($strFields as $field) {
             $val = $this->request->getVar($field);
-            if ($val !== null) {
-                $data[$field] = $val;
+            if (is_scalar($val)) {
+                $val = trim((string) $val);
+                $data[$field] = in_array($field, $dateFields, true) && $val === '' ? null : $val;
             }
         }
         foreach ($intFields as $field) {
             $val = $this->request->getVar($field);
-            if ($val !== null) {
-                $data[$field] = (int) $val;
+            if (is_scalar($val)) {
+                $data[$field] = trim((string) $val) === '' ? null : (int) $val;
             }
         }
 
         $kpsReceiver = $this->request->getVar('kps_receiver');
-        if ($kpsReceiver !== null) {
-            $data['kps_receiver'] = (bool) $kpsReceiver;
+        if (is_scalar($kpsReceiver)) {
+            $data['kps_receiver'] = (int) $kpsReceiver === 1 ? 1 : 0;
         }
 
         if (isset($data['birth_place_country_id']) && $data['birth_place_country_id'] !== 'ID') {
@@ -426,6 +517,10 @@ class RegistrantController extends BaseController
         }
 
         $userModel->updateUser($studentId, $data);
+        if (isset($data['password'])) {
+            // A new password also revokes the applicant's remember-me token, so an old cookie stops working.
+            new Remember()->revokeUserToken($studentId);
+        }
 
         return $this->response->setJSON([
             'id' => $regId,
@@ -462,6 +557,7 @@ class RegistrantController extends BaseController
         $details = $registration->findDetailsById($id);
 
         $app_settings = $db->table('application_settings')->where('id', 1)->get()->getRow();
+        $shared_number = (string) ($reg->registration_number ?? '-');
 
         $html = view('students/registration-form', [
             'student' => $student,
@@ -470,14 +566,15 @@ class RegistrantController extends BaseController
             'applicant_types' => applicant_types(),
             'admission_pathways' => admission_pathways(),
             'educations' => educations(),
-            'app_settings' => $app_settings
+            'app_settings' => $app_settings,
+            'shared_number' => $shared_number,
         ]);
 
         $pdf = new PDF();
-        $file_name = 'FORMULIR-PENERIMAAN-MAHASISWA-BARU';
-        $file_name .= '-' . $reg->registration_number . '-' . time() . '.pdf';
+        $file_name = 'FORMULIR-PENDAFTARAN';
+        $file_name .= '-' . $shared_number . '-' . time() . '.pdf';
 
-        $binary = $pdf->render($html, $reg->registration_number, $file_name);
+        $binary = $pdf->render($html, $shared_number, $file_name);
 
         return $this->response
             ->setHeader('Content-Type', 'application/pdf')
@@ -491,15 +588,13 @@ class RegistrantController extends BaseController
      * @param string $file_name The name of the file to download.
      * @return ResponseInterface|null The download response or null if not found.
      */
-    public function download(string $file_name): ?object
+    public function download(string $file_name = ''): ResponseInterface
     {
-        $safe_name = basename($file_name);
-        $path = FCPATH . 'uploads/';
-        $file_path = $path . $safe_name;
-        if (!is_file($file_path)) {
+        $file_path = find_registration_file($file_name);
+        if ($file_path === null) {
             throw PageNotFoundException::forPageNotFound();
         }
-        return $this->response->download($file_path, null)->setFileName($safe_name);
+        return $this->response->download($file_path, null)->setFileName(basename($file_path));
     }
 
     /**
@@ -511,16 +606,23 @@ class RegistrantController extends BaseController
     {
         $id = (int) ($this->request->getVar('id') ?? 0);
         $subject_id = (int) ($this->request->getVar('subject_id') ?? 0);
-        $score = (int) ($this->request->getVar('score') ?? 0);
+        $score = self::parseScore($this->request->getVar('score'), 2);
 
-        if ($score < 0 || $score > 100) {
+        if ($score === null) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['score' => 'Nilai harus antara 0-100.']
+                'errors' => ['score' => 'Nilai harus berupa angka 0-100 (maksimal 2 angka desimal).']
             ]);
         }
 
         $db = Database::connect();
+        if (!$this->registrationAndSubjectExist($id, $subject_id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['score' => 'Data pendaftaran atau mata pelajaran tidak ditemukan.']
+            ]);
+        }
+
         $existing = $db->table('registration_subject_grades')
             ->where('registration_id', $id)
             ->where('subject_id', $subject_id)
@@ -579,16 +681,25 @@ class RegistrantController extends BaseController
     {
         $regId = (int) ($this->request->getVar('reg_id') ?? 0);
         $subject_id = (int) ($this->request->getVar('subject_id') ?? 0);
-        $score = (float) ($this->request->getVar('score') ?? 0);
+        // registration_exam_scores.score is an integer column.
+        $score = self::parseScore($this->request->getVar('score'), 0);
 
-        if ($score < 0 || $score > 100) {
+        if ($score === null) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['score' => 'Nilai harus antara 0-100.']
+                'errors' => ['score' => 'Nilai ujian harus berupa bilangan bulat 0-100.']
+            ]);
+        }
+        $score = (int) $score;
+
+        $db = Database::connect();
+        if (!$this->registrationAndSubjectExist($regId, $subject_id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => ['score' => 'Data pendaftaran atau mata ujian tidak ditemukan.']
             ]);
         }
 
-        $db = Database::connect();
         $existing = $db->table('registration_exam_scores')
             ->where('registration_id', $regId)
             ->where('subject_id', $subject_id)
@@ -611,5 +722,48 @@ class RegistrantController extends BaseController
             'success' => true,
             'errors' => [],
         ]);
+    }
+
+    /**
+     * Parse a score between 0 and 100.
+     *
+     * @param mixed $value    The submitted value.
+     * @param int   $decimals Maximum number of decimal places allowed.
+     * @return float|null The score, or null when it is missing, malformed or out of range.
+     */
+    private static function parseScore(mixed $value, int $decimals): ?float
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $value = str_replace(',', '.', trim((string) $value));
+        $pattern = $decimals > 0 ? '/^[0-9]{1,3}(\.[0-9]{1,' . $decimals . '})?$/' : '/^[0-9]{1,3}$/';
+        if (preg_match($pattern, $value) !== 1) {
+            return null;
+        }
+
+        $score = (float) $value;
+
+        return ($score >= 0 && $score <= 100) ? round($score, $decimals) : null;
+    }
+
+    /**
+     * Check that both the registration and the subject exist.
+     *
+     * @param int $registration_id The registration ID.
+     * @param int $subject_id      The subject ID.
+     * @return bool
+     */
+    private function registrationAndSubjectExist(int $registration_id, int $subject_id): bool
+    {
+        if ($registration_id <= 0 || $subject_id <= 0) {
+            return false;
+        }
+
+        $db = Database::connect();
+
+        return $db->table('registrations')->where('id', $registration_id)->countAllResults() > 0
+            && $db->table('subjects')->where('id', $subject_id)->countAllResults() > 0;
     }
 }

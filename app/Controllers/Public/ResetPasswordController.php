@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controllers\Public;
 
+use App\Libraries\Remember;
 use App\Models\AdmissionPeriodModel;
 use App\Models\UserModel;
 use App\Controllers\BaseController;
 use App\Services\PasswordService;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\Database;
+use Config\Setting;
 
 /**
  * Class ResetPasswordController
@@ -23,23 +26,13 @@ class ResetPasswordController extends BaseController
      * Display the reset password form.
      *
      * @param string $password_reset_token The token provided in the reset link.
-     * @return string|null Rendered HTML view or null if user not found.
+     * @return string Rendered HTML view.
      */
-    public function index(string $password_reset_token): ?string
+    public function index(string $password_reset_token = ''): string
     {
-        $user = new UserModel();
-        $user_id = $user->findUserIdByPasswordRecoveryToken($password_reset_token);
+        $user_id = $this->findUserIdByToken($password_reset_token);
         if ($user_id > 0) {
             $db = Database::connect();
-            $user_data = $db->table('users')->where('id', $user_id)->get()->getRow();
-            $password_reset_token_request_at = $user_data->password_reset_token_request_at ?? '';
-            if (!empty($password_reset_token_request_at) && (strtotime($password_reset_token_request_at) + 3600) < time()) {
-                $vars['title'] = 'Unauthorized';
-                $vars['error_code'] = '400 Bad Request';
-                $vars['error_message'] = 'Link has expired, password reset link is only active for 60 minutes.';
-                return view('public/unauthorized', $vars);
-            }
-
             $setting = $db->table('application_settings')->get()->getRow();
 
             $activeAdmissionYear = new AdmissionPeriodModel()->getActiveAdmissionYear();
@@ -47,10 +40,12 @@ class ResetPasswordController extends BaseController
             $vars = [
                 'title' => 'Atur Ulang Kata Sandi',
                 'password_reset_token' => $password_reset_token,
-                'institution_name' => $setting->institution_name ?? 'Nama Instansi',
-                'tagline' => $setting->tagline ?? 'Portal Admisi Terpadu',
+                'institution_name' => $setting->institution_name ?? 'PSB Online',
+                'tagline' => $setting->tagline ?? 'Penerimaan Santri Baru (PSB) Online',
                 'logo' => $setting->logo ?? 'logo.png',
+                'favicon' => $setting->favicon ?? 'favicon.ico',
                 'admission_year' => $activeAdmissionYear,
+                'registration_terms' => !empty($setting->registration_terms) ? site_url('registration-terms/' . $setting->registration_terms) : null,
             ];
 
             return view('public/password-recovery', $vars);
@@ -58,84 +53,88 @@ class ResetPasswordController extends BaseController
 
         $vars['title'] = 'Tautan Tidak Valid';
         $vars['error_code'] = '404 Not Found';
-        $vars['error_message'] = 'Tautan pemulihan kata sandi tidak valid atau sudah pernah digunakan sebelumnya.';
+        $vars['error_message'] = 'Tautan pemulihan kata sandi tidak valid, sudah kedaluwarsa (berlaku 60 menit), atau sudah pernah digunakan. Silakan ajukan permintaan atur ulang kata sandi yang baru.';
         return view('public/unauthorized', $vars);
     }
 
     /**
      * Verify and process the password reset submission.
      *
+     * The token stays valid (until it expires) when the new password is rejected,
+     * so the user can correct it; it is cleared once the password is changed.
+     *
      * @param string $password_reset_token The token provided in the reset link.
-     * @return object|null JSON response object indicating success or failure.
+     * @return ResponseInterface JSON response indicating success or failure.
      */
-    public function verify(string $password_reset_token): ?object
+    public function verify(string $password_reset_token = ''): ResponseInterface
     {
         $password = $this->request->getPost('password');
         $password_confirm = $this->request->getPost('password_confirm');
+        $password = is_string($password) ? $password : '';
+        $password_confirm = is_string($password_confirm) ? $password_confirm : '';
 
-        $user = new UserModel();
-        $user_id = $user->findUserIdByPasswordRecoveryToken($password_reset_token);
+        $user_id = $this->findUserIdByToken($password_reset_token);
         if ($user_id === 0) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => [
-                    'password' => 'Your account does not exist.'
-                ]
+                'message' => 'Tautan pemulihan kata sandi tidak valid atau sudah kedaluwarsa. Silakan ajukan permintaan atur ulang kata sandi yang baru.'
             ]);
         }
 
         if ($password !== $password_confirm) {
-            $this->invalidateResetToken($user_id);
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => [
-                    'password' => 'Your password and confirmation password does not match.'
+                    'password_confirm' => 'Konfirmasi kata sandi tidak cocok.'
                 ]
             ]);
         }
 
         $passwordService = new PasswordService();
         if (!$passwordService->isValid($password)) {
-            $this->invalidateResetToken($user_id);
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => [
-                    'password' => 'Password does not meet complexity requirements.'
+                    'password' => 'Kata sandi minimal ' . Setting::MIN_PASSWORD_LENGTH . ' karakter dan harus mengandung huruf besar, huruf kecil, angka, dan simbol.'
                 ]
             ]);
         }
 
         $success = $this->updatePassword($user_id, $password);
         if ($success) {
+            // A new password ends every "remember me" login of the account.
+            new Remember()->deleteUserToken($user_id);
+
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Your password changed successfully.',
+                'message' => 'Kata sandi berhasil diperbarui. Silakan masuk dengan kata sandi baru.',
             ]);
         }
 
         return $this->response->setJSON([
             'success' => false,
             'errors' => [
-                'password' => 'Your password failed to change.'
+                'password' => 'Kata sandi gagal diperbarui. Silakan coba lagi.'
             ]
         ]);
     }
 
     /**
-     * Invalidate the password reset token for a user.
+     * Find the user that owns a password reset token.
      *
-     * @param int $user_id User ID whose token should be invalidated.
-     * @return void
+     * Tokens are 64 hex characters (32 random bytes); anything else is rejected
+     * before the (bcrypt) comparison. Expiry (60 minutes) is enforced by the model.
+     *
+     * @param string $password_reset_token Token from the reset link.
+     * @return int User ID, or 0 when the token is invalid or expired.
      */
-    private function invalidateResetToken(int $user_id): void
+    private function findUserIdByToken(string $password_reset_token): int
     {
-        $db = Database::connect();
-        $db->table('users')
-            ->where('id', $user_id)
-            ->update([
-                'password_reset_token' => null,
-                'password_reset_token_request_at' => null,
-            ]);
+        if (strlen($password_reset_token) !== 64 || !ctype_xdigit($password_reset_token)) {
+            return 0;
+        }
+
+        return new UserModel()->findUserIdByPasswordRecoveryToken($password_reset_token);
     }
 
     /**

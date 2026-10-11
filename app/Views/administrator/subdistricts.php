@@ -8,7 +8,7 @@
 </div>
 <script>
     const _grid = "SUBDISTRICTS";
-    const district_id = +'<?=$district_id?>';
+    const district_id = '<?= esc((string) $district_id, 'js') ?>';
 
     new DataGrid(_grid, {
         title: "Kecamatan",

@@ -1,23 +1,27 @@
 var H = H || {};
 
+/*
+ * Button/link helpers. `label` is trusted HTML; every other argument is escaped
+ * so it cannot break out of its attribute.
+ */
 H.Btn = (label, title, event, direction) => {
     direction = direction || 'bottom';
-    return `<button onclick="${event}" class="btn btn-light shadow-none" data-coreui-toggle="tooltip" data-coreui-placement="${direction}" title="${title}">${label}</button>`;
+    return `<button onclick="${H.Esc(event)}" class="btn btn-light shadow-none" data-coreui-toggle="tooltip" data-coreui-placement="${H.Esc(direction)}" title="${H.Esc(title)}">${label}</button>`;
 };
 
 H.BtnDanger = (label, title, event, direction) => {
     direction = direction || 'bottom';
-    return `<button onclick="${event}" class="btn btn-danger shadow-none" data-coreui-toggle="tooltip" data-coreui-placement="${direction}" title="${title}">${label}</button>`;
+    return `<button onclick="${H.Esc(event)}" class="btn btn-danger shadow-none" data-coreui-toggle="tooltip" data-coreui-placement="${H.Esc(direction)}" title="${H.Esc(title)}">${label}</button>`;
 };
 
 H.BtnIcon = (icon, title, event, direction) => {
     direction = direction || 'bottom';
-    return `<button onclick="${event}" class="btn btn-light text-body btn-sm" data-coreui-toggle="tooltip" data-coreui-placement="${direction}" title="${title}"><i class="cil-${icon}"></i></button>`;
+    return `<button onclick="${H.Esc(event)}" class="btn btn-light text-body btn-sm" data-coreui-toggle="tooltip" data-coreui-placement="${H.Esc(direction)}" title="${H.Esc(title)}"><i class="cil-${H.Esc(icon)}"></i></button>`;
 };
 
 H.LinkIcon = (icon, title, url, direction) => {
     direction = direction || 'bottom';
-    return `<a href="${url}" class="btn btn-light text-body btn-sm" data-coreui-toggle="tooltip" data-coreui-placement="${direction}" title="${title}"><i class="cil-${icon}"></i></a>`;
+    return `<a href="${H.Esc(url)}" class="btn btn-light text-body btn-sm" data-coreui-toggle="tooltip" data-coreui-placement="${H.Esc(direction)}" title="${H.Esc(title)}"><i class="cil-${H.Esc(icon)}"></i></a>`;
 };
 
 H.StrToObject = (str) => {

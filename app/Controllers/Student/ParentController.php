@@ -25,7 +25,7 @@ class ParentController extends BaseController
     {
         $userModel = new UserModel();
         $vars['title'] = 'Orang Tua';
-        $vars['row'] = $userModel->find($this->id);
+        $vars['row'] = $userModel->findWithoutSecrets($this->id);
         $vars['is_locked'] = new RegistrationModel()->isRegistrationLocked((int) $this->id);
         $vars['educations'] = educations();
         $vars['occupations'] = occupations();
@@ -35,10 +35,38 @@ class ParentController extends BaseController
 
     public function save(): ResponseInterface
     {
+        $input = array_map(fn($v) => is_string($v) ? trim($v) : $v, (array) $this->request->getVar());
+
+        $nikRule = fn(string $label) => [
+            'label' => $label,
+            'rules' => 'permit_empty|regex_match[/^[0-9]{16}$/]',
+            'errors' => ['regex_match' => $label . ' harus terdiri dari 16 digit angka.'],
+        ];
+        $dateRule = fn(string $label) => [
+            'label' => $label,
+            'rules' => 'permit_empty|valid_date[Y-m-d]',
+            'errors' => ['valid_date' => $label . ' tidak valid.'],
+        ];
+        $listRule = fn(string $label, array $items) => [
+            'label' => $label,
+            'rules' => 'permit_empty|in_list[' . implode(',', array_keys($items)) . ']',
+            'errors' => ['in_list' => $label . ' tidak valid.'],
+        ];
+
         $validation = service('validation');
         $validation->setRules([
-            'father_name' => ['label' => 'Nama Ayah Kandung', 'rules' => 'required'],
-            'mother_name' => ['label' => 'Nama Ibu Kandung', 'rules' => 'required'],
+            'father_nik' => $nikRule('NIK Ayah'),
+            'father_name' => UserModel::nameRule('Nama Ayah Kandung'),
+            'father_birth_date' => $dateRule('Tanggal Lahir Ayah'),
+            'father_education_id' => $listRule('Pendidikan Ayah', educations()),
+            'father_occupation_id' => $listRule('Pekerjaan Ayah', occupations()),
+            'father_income_id' => $listRule('Penghasilan Ayah', incomes()),
+            'mother_nik' => $nikRule('NIK Ibu'),
+            'mother_name' => UserModel::nameRule('Nama Ibu Kandung'),
+            'mother_birth_date' => $dateRule('Tanggal Lahir Ibu'),
+            'mother_education_id' => $listRule('Pendidikan Ibu', educations()),
+            'mother_occupation_id' => $listRule('Pekerjaan Ibu', occupations()),
+            'mother_income_id' => $listRule('Penghasilan Ibu', incomes()),
         ]);
 
         if (new RegistrationModel()->isRegistrationLocked((int) $this->id)) {
@@ -48,7 +76,7 @@ class ParentController extends BaseController
             ]);
         }
 
-        if (!$validation->run((array) $this->request->getVar())) {
+        if (!$validation->run($input)) {
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors(),
@@ -69,15 +97,14 @@ class ParentController extends BaseController
 
         $data = [];
         foreach ($strFields as $f) {
-            $val = $this->request->getVar($f);
-            if ($val !== null) {
-                $data[$f] = $val;
+            if (array_key_exists($f, $input) && $input[$f] !== null) {
+                $val = (string)$input[$f];
+                $data[$f] = $val !== '' ? $val : null;
             }
         }
         foreach ($intFields as $f) {
-            $val = $this->request->getVar($f);
-            if ($val !== null) {
-                $data[$f] = (int)$val;
+            if (array_key_exists($f, $input) && $input[$f] !== null) {
+                $data[$f] = (string)$input[$f] !== '' ? (int)$input[$f] : null;
             }
         }
 
@@ -87,7 +114,7 @@ class ParentController extends BaseController
             'id' => $this->id,
             'success' => true,
             'message' => 'Updated successfully.',
-            'row' => $userModel->find($this->id),
+            'row' => $userModel->findWithoutSecrets($this->id),
         ]);
     }
 }

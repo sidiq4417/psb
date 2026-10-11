@@ -1,12 +1,12 @@
 <?= $this->extend('partials/layout') ?>
 <?= $this->section('content') ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
     <div class="row row-cards mb-4">
         <div class="col-sm-6 col-md-4">
             <div class="form-floating border-light-subtle shadow-sm mb-2">
                 <select class="form-select form-select-sm" id="admission_year" name="admission_year">
                     <?php foreach ($admission_years as $year) { ?>
-                        <option value="<?= $year ?>" <?= $year == ($admission_year ?? date('Y')) ? 'selected' : '' ?>><?= $year ?>
+                        <option value="<?= (int) $year ?>" <?= (int) $year === (int) ($admission_year ?? date('Y')) ? 'selected' : '' ?>><?= (int) $year ?>
                         </option>
                     <?php } ?>
                 </select>
@@ -246,7 +246,7 @@
             const year = document.getElementById('admission_year').value;
             H.Loading(true);
 
-            fetch(_BASE_URL + '/administrator/admission-statistic-report/data?admission_year=' + year, {
+            fetch(_BASE_URL + 'administrator/admission-statistic-report/data?admission_year=' + encodeURIComponent(year), {
                 method: 'POST',
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
             })

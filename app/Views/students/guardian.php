@@ -109,7 +109,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="guardian_nik" type="text" class="form-control" name="guardian_nik"
-                               value="<?= $row->guardian_nik ?? '' ?>" placeholder="NIK Wali"
+                               value="<?= esc($row->guardian_nik ?? '', 'attr') ?>" placeholder="NIK Wali"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="guardian_nik">NIK Wali</label>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="guardian_name" type="text" class="form-control" name="guardian_name"
-                               value="<?= $row->guardian_name ?? '' ?>" placeholder="Nama Wali"
+                               value="<?= esc($row->guardian_name ?? '', 'attr') ?>" placeholder="Nama Wali"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="guardian_name">Nama Wali</label>
                     </div>
@@ -125,7 +125,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="guardian_birth_date" type="date" class="form-control" name="guardian_birth_date"
-                               value="<?= $row->guardian_birth_date ?? '' ?>" placeholder="Tanggal Lahir"
+                               value="<?= esc($row->guardian_birth_date ?? '', 'attr') ?>" placeholder="Tanggal Lahir"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="guardian_birth_date">Tanggal Lahir Wali</label>
                     </div>
@@ -135,7 +135,7 @@
                         <select id="guardian_education_id" class="form-select" name="guardian_education_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($educations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->guardian_education_id) && $row->guardian_education_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->guardian_education_id) && $row->guardian_education_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="guardian_education_id">Pendidikan Terakhir Wali</label>
@@ -146,7 +146,7 @@
                         <select id="guardian_occupation_id" class="form-select" name="guardian_occupation_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($occupations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->guardian_occupation_id) && $row->guardian_occupation_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->guardian_occupation_id) && $row->guardian_occupation_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="guardian_occupation_id">Pekerjaan Wali</label>
@@ -157,7 +157,7 @@
                         <select id="guardian_income_id" class="form-select" name="guardian_income_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($incomes as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->guardian_income_id) && $row->guardian_income_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->guardian_income_id) && $row->guardian_income_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="guardian_income_id">Penghasilan Bulanan Wali</label>
@@ -224,7 +224,7 @@
                     });
                 }
 
-                showAlert(resData.message || Object.values(resData.errors || {}).join("<br/>"), messageType);
+                showAlert(H.Esc(resData.message || "") || Object.values(resData.errors || {}).map(H.Esc).join("<br/>"), messageType);
             } catch (error) {
                 console.error("Submission error:", error);
                 showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

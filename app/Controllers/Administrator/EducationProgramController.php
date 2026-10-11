@@ -75,12 +75,16 @@ class EducationProgramController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'branch_id' => ['label' => 'Cabang Sekolah', 'rules' => 'required|is_natural_no_zero'],
-            'code' => ['label' => 'Kode', 'rules' => 'required'],
-            'name' => ['label' => 'Nama Program', 'rules' => 'required'],
+            'branch_id' => [
+                'label' => 'Cabang Sekolah',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[branches.id]',
+                'errors' => ['is_not_unique' => 'Cabang Sekolah tidak ditemukan.'],
+            ],
+            'code' => ['label' => 'Kode', 'rules' => 'required|max_length[50]'],
+            'name' => ['label' => 'Nama Program', 'rules' => 'required|max_length[255]'],
             'category' => ['label' => 'Kategori', 'rules' => 'required|in_list[MAJOR,SPECIALIZATION,VOCATIONAL_PROGRAM,SPECIAL_PROGRAM]'],
-            'display_label' => ['label' => 'Label Tampilan', 'rules' => 'permit_empty'],
-            'description' => ['label' => 'Deskripsi', 'rules' => 'permit_empty'],
+            'display_label' => ['label' => 'Label Tampilan', 'rules' => 'permit_empty|max_length[100]'],
+            'description' => ['label' => 'Deskripsi', 'rules' => 'permit_empty|max_length[5000]'],
         ];
 
         if (!$this->validate($rules)) {

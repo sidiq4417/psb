@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controllers\Public;
 
+use App\Libraries\Auth;
 use App\Models\AdmissionPeriodModel;
+use App\Models\ApplicationSettingModel;
 use App\Models\BranchModel;
 use App\Controllers\BaseController;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -22,21 +25,29 @@ class HomeController extends BaseController
     /**
      * Display the public registration page.
      *
-     * @return string Rendered HTML view of the home page.
+     * A visitor who is already logged in (or has a valid "remember me" cookie)
+     * is sent to the dashboard instead.
+     *
+     * @return string|RedirectResponse Rendered HTML view of the home page, or redirect to the dashboard.
      */
-    public function index(): string
+    public function index(): string|RedirectResponse
     {
+        $auth = new Auth();
+        if ($auth->isLoggedIn() && ($auth->isAdmin() || $auth->isOperator() || $auth->isStudent())) {
+            return redirect()->to('dashboard')->withCookies();
+        }
+
         $db = db_connect();
         $setting = $db->table('application_settings')->where('id', 1)->get()->getRow();
 
         $activeAdmissionYear = new AdmissionPeriodModel()->getActiveAdmissionYear();
 
         $branchModel = new BranchModel();
-        $branches = $branchModel->findAll();
+        $branches = $branchModel->where('is_deleted', false)->orderBy('id')->findAll();
 
         return view('public/home', [
-            'institution_name' => $setting->institution_name ?? 'Nama Instansi',
-            'tagline' => $setting->tagline ?? 'Portal Admisi Terpadu',
+            'institution_name' => $setting->institution_name ?? 'PSB Online',
+            'tagline' => $setting->tagline ?? 'Penerimaan Santri Baru (PSB) Online',
             'address' => $setting->address ?? '',
             'email' => $setting->email ?? '',
             'telephone' => $setting->telephone ?? '',
@@ -54,20 +65,35 @@ class HomeController extends BaseController
     /**
      * Publicly accessible download method for system assets.
      *
+     * Only the files currently configured in the application settings (logo, favicon,
+     * payment method and registration terms) are served; anything else is a 404.
+     *
      * @param string $file_name The name of the file to download.
-     * @return ResponseInterface|null The download response or null if not found.
+     * @return ResponseInterface The download response.
+     * @throws PageNotFoundException When the file is not a configured public asset or does not exist.
      */
-    public function download(string $file_name): ?ResponseInterface
+    public function download(string $file_name = ''): ResponseInterface
     {
         $safe_name = basename($file_name);
-        $path = FCPATH . 'uploads/';
-        $file_path = $path . $safe_name;
+        $setting = new ApplicationSettingModel()->getSetting();
 
-        if (!is_file($file_path)) {
+        $allowed = [];
+        foreach (['logo', 'favicon', 'payment_method', 'registration_terms'] as $field) {
+            $value = basename((string) ($setting->$field ?? ''));
+            if ($value !== '' && $value !== '.' && $value !== '..') {
+                $allowed[$value] = $field;
+            }
+        }
+
+        $file_path = public_upload_path() . $safe_name;
+        if (!isset($allowed[$safe_name]) || !is_file($file_path)) {
             throw PageNotFoundException::forPageNotFound();
         }
 
-        return $this->response->download($file_path, null)->setFileName($safe_name);
+        $response = $this->response->download($file_path, null, true)->setFileName($safe_name);
+
+        // Images are shown in the page (logo, favicon); documents are downloaded.
+        return in_array($allowed[$safe_name], ['logo', 'favicon'], true) ? $response->inline() : $response;
     }
 
     /**
@@ -78,14 +104,15 @@ class HomeController extends BaseController
      */
     public function dashboard(): ResponseInterface
     {
+        // withCookies() sends the rotated remember-me cookie when this request logged the user in from it.
         if (session()->get('is_admin') || session()->get('is_operator')) {
-            return redirect()->to('administrator/dashboard');
+            return redirect()->to('administrator/dashboard')->withCookies();
         }
 
         if (session()->get('is_student')) {
-            return redirect()->to('students/dashboard');
+            return redirect()->to('students/dashboard')->withCookies();
         }
 
-        return redirect()->to('/');
+        return redirect()->to('/')->withCookies();
     }
 }

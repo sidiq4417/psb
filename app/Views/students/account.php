@@ -151,7 +151,7 @@
 
             <div class="form-floating mb-3">
                 <input type="text" class="form-control" name="full_name" id="full_name"
-                    placeholder="Nama" value="<?= $full_name ?>" <?= $is_submitted ? 'disabled' : '' ?>>
+                    placeholder="Nama" value="<?= esc($full_name, 'attr') ?>" <?= $is_submitted ? 'disabled' : '' ?>>
                 <label for="full_name">Nama Lengkap</label>
                 <?php if ($is_submitted): ?>
                     <small class="text-muted mt-1 d-block">Nama tidak dapat diubah karena pendaftaran sudah dikonfirmasi.</small>
@@ -160,7 +160,7 @@
 
             <div class="form-floating mb-4">
                 <input type="email" class="form-control" name="email" id="email"
-                    placeholder="Email" value="<?= $email ?>">
+                    placeholder="Email" value="<?= esc($email, 'attr') ?>">
                 <label for="email">Email</label>
             </div>
 
@@ -262,10 +262,10 @@
                 const data = await res.json();
 
                 if (!res.ok || !data.success) {
-                    showAlert(data.errors ? Object.values(data.errors).join("<br/>") : (data.message || "Gagal menyimpan perubahan."), "alert-danger");
+                    showAlert(data.errors ? Object.values(data.errors).map(H.Esc).join("<br/>") : H.Esc(data.message || "Gagal menyimpan perubahan."), "alert-danger");
                 } else {
                     pwdInputs.forEach(input => input.value = "");
-                    showAlert(data.message || "Perubahan berhasil disimpan.", "alert-success");
+                    showAlert(H.Esc(data.message || "Perubahan berhasil disimpan."), "alert-success");
                 }
             } catch (error) {
                 showAlert("Koneksi gagal. Silakan coba lagi nanti.", "alert-danger");

@@ -111,7 +111,7 @@
                         <select id="address_country_id" class="form-select" name="address_country_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="99">Lainnya</option>
                             <?php foreach ($countries as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->address_country_id) && $row->address_country_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->address_country_id) && $row->address_country_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="address_country_id">Negara <sup class="text-danger">*</sup></label>
@@ -144,7 +144,7 @@
                 <div class="col-md-12">
                     <div class="form-floating">
                         <input id="urban_village" type="text" class="form-control" name="urban_village"
-                               value="<?= $row->urban_village ?? '' ?>" placeholder="Kelurahan"
+                               value="<?= esc($row->urban_village ?? '', 'attr') ?>" placeholder="Kelurahan"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="urban_village">Kelurahan / Desa</label>
                     </div>
@@ -162,7 +162,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="street_address" type="text" class="form-control" name="street_address"
-                               value="<?= $row->street_address ?? '' ?>" placeholder="Jalan"
+                               value="<?= esc($row->street_address ?? '', 'attr') ?>" placeholder="Jalan"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="street_address">Nama Jalan / Blok / No. Rumah</label>
                     </div>
@@ -170,7 +170,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="village" type="text" class="form-control" name="village"
-                               value="<?= $row->village ?? '' ?>" placeholder="Dusun"
+                               value="<?= esc($row->village ?? '', 'attr') ?>" placeholder="Dusun"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="village">Dusun / Lingkungan</label>
                     </div>
@@ -178,7 +178,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="rt" type="text" class="form-control" name="rt"
-                               value="<?= $row->rt ?? '' ?>" placeholder="RT"
+                               value="<?= esc($row->rt ?? '', 'attr') ?>" placeholder="RT"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="rt">RT</label>
                     </div>
@@ -186,7 +186,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="rw" type="text" class="form-control" name="rw"
-                               value="<?= $row->rw ?? '' ?>" placeholder="RW"
+                               value="<?= esc($row->rw ?? '', 'attr') ?>" placeholder="RW"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="rw">RW</label>
                     </div>
@@ -194,7 +194,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="post_code" type="text" class="form-control" name="post_code"
-                               value="<?= $row->post_code ?? '' ?>" placeholder="Kode Pos"
+                               value="<?= esc($row->post_code ?? '', 'attr') ?>" placeholder="Kode Pos"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="post_code">Kode Pos</label>
                     </div>
@@ -214,7 +214,7 @@
                         <select id="residence_id" class="form-select" name="residence_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($residences as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->residence_id) && $row->residence_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->residence_id) && $row->residence_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="residence_id">Tempat Tinggal</label>
@@ -225,7 +225,7 @@
                         <select id="transportation_id" class="form-select" name="transportation_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($transportations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->transportation_id) && $row->transportation_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->transportation_id) && $row->transportation_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="transportation_id">Alat Transportasi</label>
@@ -245,7 +245,7 @@
 </div>
 
 <script>
-    let data = H.StrToObject('<?=toJson($row)?>');
+    let data = <?= toJson($row ?? (object) []) ?>;
 
     async function showAlert(message, type) {
         const alertBox = document.getElementById("response-alert");
@@ -414,7 +414,7 @@
                         }
                     }
 
-                    showAlert(resData.message || Object.values(resData.errors || {}).join("<br/>"), messageType);
+                    showAlert(H.Esc(resData.message || "") || Object.values(resData.errors || {}).map(H.Esc).join("<br/>"), messageType);
                 } catch (error) {
                     console.error("Submission error:", error);
                     showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

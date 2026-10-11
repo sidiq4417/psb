@@ -58,8 +58,101 @@ label.list-group-item:hover {
 }
 
 .sidebar-nav .nav-link.active {
-    border-left-color: #e0b976;
-    background: linear-gradient(90deg, rgba(224, 185, 118, 0.15) 0%, transparent 100%);
-    color: #e0b976;
+    border-left-color: var(--brand-yellow);
+    background: linear-gradient(90deg, rgba(133, 194, 38, 0.25) 0%, transparent 100%);
+    color: #fff;
     font-weight: 500;
+}
+
+.sidebar-nav .nav-link.active .nav-icon {
+    color: var(--brand-yellow);
+}
+
+/* -------------------------------------------------------------------------
+ * Brand colours from the PPTQ Al-Fath Solo Baru logo: green #85C226 and
+ * yellow #FFF500. Darker greens are used wherever white text sits on green;
+ * yellow is only an accent on dark green (never behind white text).
+ * ------------------------------------------------------------------------- */
+:root,
+[data-coreui-theme=light] {
+    --brand-green: #85c226;
+    --brand-green-600: #3f7d1c;
+    --brand-green-700: #2e6b12;
+    --brand-green-800: #245410;
+    --brand-green-900: #1b400d;
+    --brand-yellow: #fff500;
+
+    --cui-primary: #3f7d1c;
+    --cui-primary-rgb: 63, 125, 28;
+    --cui-primary-text-emphasis: #245410;
+    --cui-primary-bg-subtle: #e5f3cf;
+    --cui-primary-border-subtle: #cce6a1;
+    --cui-link-color: #3f7d1c;
+    --cui-link-color-rgb: 63, 125, 28;
+    --cui-link-hover-color: #2e6b12;
+    --cui-link-hover-color-rgb: 46, 107, 18;
+    --cui-focus-ring-color: rgba(63, 125, 28, 0.25);
+}
+
+.btn-primary {
+    --cui-btn-bg: var(--brand-green-600);
+    --cui-btn-border-color: var(--brand-green-600);
+    --cui-btn-hover-bg: var(--brand-green-700);
+    --cui-btn-hover-border-color: var(--brand-green-700);
+    --cui-btn-focus-shadow-rgb: 63, 125, 28;
+    --cui-btn-active-bg: var(--brand-green-800);
+    --cui-btn-active-border-color: var(--brand-green-800);
+    --cui-btn-disabled-bg: var(--brand-green-600);
+    --cui-btn-disabled-border-color: var(--brand-green-600);
+}
+
+.btn-outline-primary,
+.btn-ghost-primary {
+    --cui-btn-color: var(--brand-green-600);
+    --cui-btn-hover-bg: var(--brand-green-600);
+    --cui-btn-hover-border-color: var(--brand-green-600);
+    --cui-btn-focus-shadow-rgb: 63, 125, 28;
+    --cui-btn-active-bg: var(--brand-green-700);
+    --cui-btn-active-border-color: var(--brand-green-700);
+    --cui-btn-disabled-color: var(--brand-green-600);
+}
+
+.btn-outline-primary {
+    --cui-btn-border-color: var(--brand-green-600);
+    --cui-btn-disabled-border-color: var(--brand-green-600);
+}
+
+.callout-primary {
+    --cui-callout-border-left-color: var(--brand-green-600);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.chip-input:focus-within {
+    border-color: #a9d467;
+    box-shadow: 0 0 0 0.25rem rgba(63, 125, 28, 0.25);
+}
+
+.nav-link:focus-visible {
+    box-shadow: 0 0 0 0.25rem rgba(63, 125, 28, 0.25);
+}
+
+.sidebar-dark {
+    --cui-body-bg: var(--brand-green-900);
+    --cui-secondary-bg: var(--brand-green-800);
+    --cui-tertiary-bg: #20490f;
+    --cui-border-color: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-brand-tagline {
+    color: var(--brand-yellow);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.wrapper > .header {
+    border-top: 3px solid var(--brand-green);
 }

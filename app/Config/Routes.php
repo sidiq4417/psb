@@ -122,8 +122,9 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
     /** @route GET /dashboard */
     $routes->get('dashboard', [HomeController::class, 'dashboard']);
 
-    /** @route GET /logout */
-    $routes->get('logout', [LogoutController::class, 'index']);
+    /** @route POST /logout (logging out changes state, so it needs the CSRF token; GET only redirects) */
+    $routes->post('logout', [LogoutController::class, 'index']);
+    $routes->get('logout', [LogoutController::class, 'redirectToDashboard']);
 
     /**
      * --------------------------------------------------------------------
@@ -179,9 +180,38 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
 
         /**
          * Administrator-Only Routes
+         * (the sidebar shows these menus to administrators only)
          */
         $routes->group('', ['filter' => 'auth:admin'], static function (RouteCollection $routes) use ($registerStandardCrud) {
             $registerStandardCrud($routes, 'operators', OperatorController::class);
+
+            /** @section Application Configuration */
+            $routes->get('application-settings', [ApplicationSettingController::class, 'index']);
+            $routes->post('application-settings/save', [ApplicationSettingController::class, 'save']);
+            $routes->post('application-settings/upload', [ApplicationSettingController::class, 'upload']);
+            $routes->get('application-settings/download/(:any)', [ApplicationSettingController::class, 'download']);
+
+            /** @section Registrant Records */
+            $routes->group('registrants', static function (RouteCollection $routes) {
+                $routes->get('/', [RegistrantController::class, 'index']);
+                $routes->post('lists', [RegistrantController::class, 'lists']);
+                $routes->post('form', [RegistrantController::class, 'form']);
+                $routes->post('save', [RegistrantController::class, 'save']);
+                $routes->post('update-subject-score', [RegistrantController::class, 'updateSubjectScore']);
+                $routes->post('entrance-exam-subjects', [RegistrantController::class, 'listEntranceExamSubjects']);
+                $routes->post('update-entrance-exam-score', [RegistrantController::class, 'updateEntranceExamScore']);
+                $routes->get('download/(:any)', [RegistrantController::class, 'download']);
+                $routes->get('print/(:num)', [RegistrantController::class, 'print']);
+                $routes->post('form-student', [RegistrantController::class, 'formStudent']);
+                $routes->post('save-student', [RegistrantController::class, 'saveStudent']);
+                $routes->post('provinces', [RegistrantController::class, 'provinces']);
+                $routes->post('districts', [RegistrantController::class, 'districts']);
+                $routes->post('subdistricts', [RegistrantController::class, 'subdistricts']);
+            });
+
+            /** @section Admission Statistics Report */
+            $routes->get('admission-statistic-report', [AdmissionStatisticReportController::class, 'index']);
+            $routes->post('admission-statistic-report/data', [AdmissionStatisticReportController::class, 'data']);
         });
 
         /**
@@ -198,12 +228,6 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
                 $routes->get('(:segment)', [$controller, 'index']);
             });
         }
-
-        /** @section Application Configuration */
-        $routes->get('application-settings', [ApplicationSettingController::class, 'index']);
-        $routes->post('application-settings/save', [ApplicationSettingController::class, 'save']);
-        $routes->post('application-settings/upload', [ApplicationSettingController::class, 'upload']);
-        $routes->get('application-settings/download/(:any)', [ApplicationSettingController::class, 'download']);
 
         $routes->get('general-requirements', [GeneralRequirementController::class, 'index']);
         $routes->post('general-requirements/lists', [GeneralRequirementController::class, 'lists']);
@@ -249,28 +273,6 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
             $routes->get('print/(:num)', [StudentController::class, 'print']);
             $routes->get('(:num)', [StudentController::class, 'index']);
         });
-
-        /** @section Registrant Records */
-        $routes->group('registrants', static function (RouteCollection $routes) {
-            $routes->get('/', [RegistrantController::class, 'index']);
-            $routes->post('lists', [RegistrantController::class, 'lists']);
-            $routes->post('form', [RegistrantController::class, 'form']);
-            $routes->post('save', [RegistrantController::class, 'save']);
-            $routes->post('update-subject-score', [RegistrantController::class, 'updateSubjectScore']);
-            $routes->post('entrance-exam-subjects', [RegistrantController::class, 'listEntranceExamSubjects']);
-            $routes->post('update-entrance-exam-score', [RegistrantController::class, 'updateEntranceExamScore']);
-            $routes->get('download/(:any)', [RegistrantController::class, 'download']);
-            $routes->get('print/(:num)', [RegistrantController::class, 'print']);
-            $routes->post('form-student', [RegistrantController::class, 'formStudent']);
-            $routes->post('save-student', [RegistrantController::class, 'saveStudent']);
-            $routes->post('provinces', [RegistrantController::class, 'provinces']);
-            $routes->post('districts', [RegistrantController::class, 'districts']);
-            $routes->post('subdistricts', [RegistrantController::class, 'subdistricts']);
-        });
-
-        /** @section Admission Statistics Report */
-        $routes->get('admission-statistic-report', [AdmissionStatisticReportController::class, 'index']);
-        $routes->post('admission-statistic-report/data', [AdmissionStatisticReportController::class, 'data']);
     });
 
     /**
@@ -286,12 +288,12 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
 
         /** @var array $studentGroups Grouped configuration for student profile modules */
         $studentGroups = [
-            'profile' => [StudentProfileController::class, ['form', 'save', 'provinces', 'districts']],
-            'address' => [AddressController::class, ['form', 'save', 'provinces', 'districts', 'subdistricts']],
-            'contact' => [ContactController::class, ['form', 'save']],
-            'parents' => [ParentController::class, ['form', 'save']],
-            'guardian' => [GuardianController::class, ['form', 'save']],
-            'school' => [StudentSchoolController::class, ['form', 'save']],
+            'profile' => [StudentProfileController::class, ['save', 'provinces', 'districts']],
+            'address' => [AddressController::class, ['save', 'provinces', 'districts', 'subdistricts']],
+            'contact' => [ContactController::class, ['save']],
+            'parents' => [ParentController::class, ['save']],
+            'guardian' => [GuardianController::class, ['save']],
+            'school' => [StudentSchoolController::class, ['save']],
             'admissions' => [AdmissionController::class, ['save', 'lists', 'remove']],
 
             'account' => [ProfileController::class, ['save']],

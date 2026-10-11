@@ -109,7 +109,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="father_nik" type="text" class="form-control" name="father_nik"
-                               value="<?= $row->father_nik ?? '' ?>" placeholder="NIK Ayah"
+                               value="<?= esc($row->father_nik ?? '', 'attr') ?>" placeholder="NIK Ayah"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="father_nik">NIK Ayah Kandung</label>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="father_name" type="text" class="form-control" name="father_name"
-                               value="<?= $row->father_name ?? '' ?>" placeholder="Nama Ayah"
+                               value="<?= esc($row->father_name ?? '', 'attr') ?>" placeholder="Nama Ayah"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="father_name">Nama Ayah Kandung <sup class="text-danger">*</sup></label>
                     </div>
@@ -125,7 +125,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="father_birth_date" type="date" class="form-control" name="father_birth_date"
-                               value="<?= $row->father_birth_date ?? '' ?>" placeholder="Tanggal Lahir"
+                               value="<?= esc($row->father_birth_date ?? '', 'attr') ?>" placeholder="Tanggal Lahir"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="father_birth_date">Tanggal Lahir Ayah</label>
                     </div>
@@ -135,7 +135,7 @@
                         <select id="father_education_id" class="form-select" name="father_education_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($educations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->father_education_id) && $row->father_education_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->father_education_id) && $row->father_education_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="father_education_id">Pendidikan Terakhir Ayah</label>
@@ -146,7 +146,7 @@
                         <select id="father_occupation_id" class="form-select" name="father_occupation_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($occupations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->father_occupation_id) && $row->father_occupation_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->father_occupation_id) && $row->father_occupation_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="father_occupation_id">Pekerjaan Ayah</label>
@@ -157,7 +157,7 @@
                         <select id="father_income_id" class="form-select" name="father_income_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($incomes as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->father_income_id) && $row->father_income_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->father_income_id) && $row->father_income_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="father_income_id">Penghasilan Bulanan Ayah</label>
@@ -176,7 +176,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="mother_nik" type="text" class="form-control" name="mother_nik"
-                               value="<?= $row->mother_nik ?? '' ?>" placeholder="NIK Ibu"
+                               value="<?= esc($row->mother_nik ?? '', 'attr') ?>" placeholder="NIK Ibu"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="mother_nik">NIK Ibu Kandung</label>
                     </div>
@@ -184,7 +184,7 @@
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input id="mother_name" type="text" class="form-control" name="mother_name"
-                               value="<?= $row->mother_name ?? '' ?>" placeholder="Nama Ibu"
+                               value="<?= esc($row->mother_name ?? '', 'attr') ?>" placeholder="Nama Ibu"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="mother_name">Nama Ibu Kandung <sup class="text-danger">*</sup></label>
                     </div>
@@ -192,7 +192,7 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="mother_birth_date" type="date" class="form-control" name="mother_birth_date"
-                               value="<?= $row->mother_birth_date ?? '' ?>" placeholder="Tanggal Lahir"
+                               value="<?= esc($row->mother_birth_date ?? '', 'attr') ?>" placeholder="Tanggal Lahir"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="mother_birth_date">Tanggal Lahir Ibu</label>
                     </div>
@@ -202,7 +202,7 @@
                         <select id="mother_education_id" class="form-select" name="mother_education_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($educations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->mother_education_id) && $row->mother_education_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->mother_education_id) && $row->mother_education_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="mother_education_id">Pendidikan Terakhir Ibu</label>
@@ -213,7 +213,7 @@
                         <select id="mother_occupation_id" class="form-select" name="mother_occupation_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($occupations as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->mother_occupation_id) && $row->mother_occupation_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->mother_occupation_id) && $row->mother_occupation_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="mother_occupation_id">Pekerjaan Ibu</label>
@@ -224,7 +224,7 @@
                         <select id="mother_income_id" class="form-select" name="mother_income_id" <?= $is_locked ? 'disabled' : '' ?>>
                             <option value="">Pilih:</option>
                             <?php foreach ($incomes as $key => $value) { ?>
-                                <option value="<?= $key ?>" <?= isset($row->mother_income_id) && $row->mother_income_id == $key ? 'selected' : '' ?>><?= $value ?></option>
+                                <option value="<?= esc((string)$key, 'attr') ?>" <?= isset($row->mother_income_id) && $row->mother_income_id == $key ? 'selected' : '' ?>><?= esc($value) ?></option>
                             <?php } ?>
                         </select>
                         <label for="mother_income_id">Penghasilan Bulanan Ibu</label>
@@ -294,7 +294,7 @@
                     });
                 }
 
-                showAlert(resData.message || Object.values(resData.errors || {}).join("<br/>"), messageType);
+                showAlert(H.Esc(resData.message || "") || Object.values(resData.errors || {}).map(H.Esc).join("<br/>"), messageType);
             } catch (error) {
                 console.error("Submission error:", error);
                 showAlert("Terjadi kesalahan teknis saat menyimpan data.", "alert-danger");

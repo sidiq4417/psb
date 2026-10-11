@@ -25,17 +25,28 @@ class SchoolController extends BaseController
     {
         $userModel = new UserModel();
         $vars['title'] = 'Asal Sekolah';
-        $vars['row'] = $userModel->find($this->id);
+        $vars['row'] = $userModel->findWithoutSecrets($this->id);
         $vars['is_locked'] = new RegistrationModel()->isRegistrationLocked((int) $this->id);
         return view('students/school', $vars);
     }
 
     public function save(): ResponseInterface
     {
+        $input = array_map(fn($v) => is_string($v) ? trim($v) : $v, (array) $this->request->getVar());
+
         $validation = service('validation');
         $validation->setRules([
-            'school_name' => ['label' => 'Nama Asal Sekolah', 'rules' => 'permit_empty'],
-            'nisn' => ['label' => 'Nomor Induk Siswa Nasional', 'rules' => 'permit_empty'],
+            'school_name' => ['label' => 'Nama Asal Sekolah', 'rules' => 'permit_empty|max_length[255]'],
+            'nisn' => [
+                'label' => 'Nomor Induk Siswa Nasional',
+                'rules' => 'permit_empty|regex_match[/^[0-9]{10}$/]',
+                'errors' => ['regex_match' => 'NISN harus terdiri dari 10 digit angka.'],
+            ],
+            'school_graduation_year' => [
+                'label' => 'Tahun Lulus',
+                'rules' => 'permit_empty|regex_match[/^[0-9]{4}$/]',
+                'errors' => ['regex_match' => 'Tahun Lulus harus berupa 4 digit tahun.'],
+            ],
         ]);
 
         if (new RegistrationModel()->isRegistrationLocked((int) $this->id)) {
@@ -45,7 +56,7 @@ class SchoolController extends BaseController
             ]);
         }
 
-        if (!$validation->run((array) $this->request->getVar())) {
+        if (!$validation->run($input)) {
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors(),
@@ -61,18 +72,13 @@ class SchoolController extends BaseController
             ]);
         }
 
-        $fields = ['nisn', 'npsn', 'school_address', 'school_name', 'school_major'];
+        $fields = ['nisn', 'npsn', 'school_address', 'school_name', 'school_major', 'school_graduation_year'];
         $data = [];
         foreach ($fields as $f) {
-            $val = $this->request->getVar($f);
-            if ($val !== null) {
-                $data[$f] = $val;
+            if (array_key_exists($f, $input) && $input[$f] !== null) {
+                $val = (string)$input[$f];
+                $data[$f] = $val !== '' ? $val : null;
             }
-        }
-
-        $val = $this->request->getVar('school_graduation_year');
-        if ($val !== null) {
-            $data['school_graduation_year'] = (int)$val;
         }
 
         $userModel->updateUser($this->id, $data);
@@ -81,7 +87,7 @@ class SchoolController extends BaseController
             'id' => $this->id,
             'success' => true,
             'message' => 'Updated successfully.',
-            'row' => $userModel->find($this->id),
+            'row' => $userModel->findWithoutSecrets($this->id),
         ]);
     }
 }

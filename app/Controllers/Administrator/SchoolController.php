@@ -84,12 +84,12 @@ class SchoolController extends BaseController
 
         $validation->setRules([
             'school_name' => [
-                'label' => 'School/University Name',
-                'rules' => 'required',
+                'label' => 'Nama Sekolah',
+                'rules' => 'required|max_length[255]',
             ],
             'school_address' => [
-                'label' => 'Address',
-                'rules' => 'required',
+                'label' => 'Alamat',
+                'rules' => 'required|max_length[1000]',
             ],
         ]);
 

@@ -8,7 +8,7 @@
 </div>
 <script>
     const _grid = "DISTRICTS";
-    const province_id = '<?=$province_id?>';
+    const province_id = '<?= esc((string) $province_id, 'js') ?>';
 
     new DataGrid(_grid, {
         title: "Kabupaten/Kota",

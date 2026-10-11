@@ -7,7 +7,7 @@
     <div class="card-body" id="BRANCHES"></div>
 </div>
 <script>
-    DS.EducationLevels = <?= json_encode(array_combine($educationLevels, $educationLevels)) ?>;
+    DS.EducationLevels = <?= toJson(array_combine($educationLevels, $educationLevels)) ?>;
     const _grid = "BRANCHES", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {

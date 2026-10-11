@@ -25,7 +25,7 @@ class AddressController extends BaseController
     {
         $userModel = new UserModel();
         $vars['title'] = 'Alamat';
-        $vars['row'] = $userModel->find($this->id);
+        $vars['row'] = $userModel->findWithoutSecrets($this->id);
         $vars['is_locked'] = new RegistrationModel()->isRegistrationLocked((int) $this->id);
         $vars['countries'] = countries();
         $vars['residences'] = residences();
@@ -83,12 +83,39 @@ class AddressController extends BaseController
 
     public function save(): ResponseInterface
     {
+        $input = array_map(fn($v) => is_string($v) ? trim($v) : $v, (array) $this->request->getVar());
+
         $validation = service('validation');
         $validation->setRules([
             'address_country_id' => ['label' => 'Negara', 'rules' => 'required'],
             'address_province_id' => ['label' => 'Provinsi', 'rules' => 'required'],
             'address_district_id' => ['label' => 'Kabupaten/Kota', 'rules' => 'required'],
             'address_subdistrict_id' => ['label' => 'Kecamatan', 'rules' => 'required'],
+            'rt' => [
+                'label' => 'RT',
+                'rules' => 'permit_empty|regex_match[/^[0-9]{1,3}$/]',
+                'errors' => ['regex_match' => 'RT hanya boleh berisi angka, maksimal 3 digit.'],
+            ],
+            'rw' => [
+                'label' => 'RW',
+                'rules' => 'permit_empty|regex_match[/^[0-9]{1,3}$/]',
+                'errors' => ['regex_match' => 'RW hanya boleh berisi angka, maksimal 3 digit.'],
+            ],
+            'post_code' => [
+                'label' => 'Kode Pos',
+                'rules' => 'permit_empty|regex_match[/^[0-9]{5}$/]',
+                'errors' => ['regex_match' => 'Kode Pos harus terdiri dari 5 digit angka.'],
+            ],
+            'residence_id' => [
+                'label' => 'Tempat Tinggal',
+                'rules' => 'permit_empty|in_list[' . implode(',', array_keys(residences())) . ']',
+                'errors' => ['in_list' => 'Tempat Tinggal tidak valid.'],
+            ],
+            'transportation_id' => [
+                'label' => 'Alat Transportasi',
+                'rules' => 'permit_empty|in_list[' . implode(',', array_keys(transportations())) . ']',
+                'errors' => ['in_list' => 'Alat Transportasi tidak valid.'],
+            ],
         ]);
 
         if (new RegistrationModel()->isRegistrationLocked((int) $this->id)) {
@@ -98,7 +125,7 @@ class AddressController extends BaseController
             ]);
         }
 
-        if (!$validation->run((array) $this->request->getVar())) {
+        if (!$validation->run($input)) {
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors(),
@@ -119,15 +146,14 @@ class AddressController extends BaseController
 
         $data = [];
         foreach ($strFields as $f) {
-            $val = $this->request->getVar($f);
-            if ($val !== null) {
-                $data[$f] = $val;
+            if (array_key_exists($f, $input) && $input[$f] !== null) {
+                $val = (string)$input[$f];
+                $data[$f] = $val !== '' ? $val : null;
             }
         }
         foreach ($intFields as $f) {
-            $val = $this->request->getVar($f);
-            if ($val !== null) {
-                $data[$f] = (int)$val;
+            if (array_key_exists($f, $input) && $input[$f] !== null) {
+                $data[$f] = (string)$input[$f] !== '' ? (int)$input[$f] : null;
             }
         }
 
@@ -137,7 +163,7 @@ class AddressController extends BaseController
             'id' => $this->id,
             'success' => true,
             'message' => 'Updated successfully.',
-            'row' => $userModel->find($this->id),
+            'row' => $userModel->findWithoutSecrets($this->id),
         ]);
     }
 }

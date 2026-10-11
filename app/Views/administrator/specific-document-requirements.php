@@ -106,28 +106,28 @@
                         <div class="data-icon"><i class="cil-building"></i></div>
                         <div class="data-content">
                             <span class="data-label">Sekolah</span>
-                            <span class="data-value"><?= $offering->school_name ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->school_name ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item">
                         <div class="data-icon"><i class="cil-education"></i></div>
                         <div class="data-content">
                             <span class="data-label">Tingkat</span>
-                            <span class="data-value"><?= $offering->grade_name ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->grade_name ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item">
                         <div class="data-icon"><i class="cil-chevron-right"></i></div>
                         <div class="data-content">
                             <span class="data-label">Jalur</span>
-                            <span class="data-value"><?= $offering->track_name ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->track_name ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item mb-0">
                         <div class="data-icon"><i class="cil-list"></i></div>
                         <div class="data-content">
                             <span class="data-label">Program</span>
-                            <span class="data-value"><?= $offering->program_name ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->program_name ?? '-')) ?></span>
                         </div>
                     </div>
                 </div>
@@ -137,28 +137,28 @@
                         <div class="data-icon"><i class="cil-calendar"></i></div>
                         <div class="data-content">
                             <span class="data-label">Tahun Ajaran</span>
-                            <span class="data-value"><?= $offering->academic_year_name ?? '-' ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->academic_year_name ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item">
                         <div class="data-icon"><i class="cil-clock"></i></div>
                         <div class="data-content">
                             <span class="data-label">Periode</span>
-                            <span class="data-value"><?= $offering->period_name ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->period_name ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item">
                         <div class="data-icon"><i class="cil-people"></i></div>
                         <div class="data-content">
                             <span class="data-label">Kuota</span>
-                            <span class="data-value"><?= $offering->quota ?></span>
+                            <span class="data-value"><?= esc((string) ($offering->quota ?? '-')) ?></span>
                         </div>
                     </div>
                     <div class="data-item mb-0">
                         <div class="data-icon"><i class="cil-dollar"></i></div>
                         <div class="data-content">
                             <span class="data-label">Biaya Pendaftaran</span>
-                            <span class="data-value"><span class="badge-fee"><?= 'Rp. ' . number_format((float)($offering->registration_fee ?? 0), 0, ',', '.') ?></span></span>
+                            <span class="data-value"><span class="badge-fee"><?= esc('Rp. ' . number_format((float)($offering->registration_fee ?? 0), 0, ',', '.')) ?></span></span>
                         </div>
                     </div>
                 </div>
@@ -170,8 +170,8 @@
     <div class="card-body" id="SPECIFIC_DOCUMENT_REQUIREMENTS"></div>
 </div>
 <script>
-    const offering_id = '<?=$offering_id?>';
-    DS.Documents = H.StrToObject('<?=$documents?>');
+    const offering_id = <?= (int) $offering_id ?>;
+    DS.Documents = <?= $documents ?>;
     const _grid = "SPECIFIC_DOCUMENT_REQUIREMENTS", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {

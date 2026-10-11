@@ -80,7 +80,7 @@ class ApplicantTypeController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'name' => ['label' => 'Jenis Pendaftaran', 'rules' => 'required']
+            'name' => ['label' => 'Jenis Pendaftaran', 'rules' => 'required|max_length[255]']
         ];
 
         if (!$this->validate($rules)) {
@@ -97,6 +97,15 @@ class ApplicantTypeController extends BaseController
         $unique_id = 'applicant_type:' . url_title(mb_strtolower($name));
 
         if ($id > 0) {
+            $existing = $model->where('unique_id', $unique_id)->where('id !=', $id)->first();
+            if ($existing) {
+                return $this->response->setJSON([
+                    'id' => 0,
+                    'success' => false,
+                    'message' => 'Unique identifier collision.',
+                ]);
+            }
+
             $model->update($id, ['name' => $name, 'unique_id' => $unique_id, 'updated_by' => $actor]);
             return $this->response->setJSON([
                 'id' => $id,

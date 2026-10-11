@@ -11,8 +11,8 @@
     <div class="card-body" id="GENERAL_DOCUMENT_REQUIREMENTS"></div>
 </div>
 <script>
-    const academic_year_id = +'<?= $academic_year_id ?>';
-    DS.Documents = H.StrToObject('<?= is_string($documents) ? $documents : json_encode($documents) ?>');
+    const academic_year_id = <?= (int) $academic_year_id ?>;
+    DS.Documents = <?= is_string($documents) ? $documents : toJson($documents) ?>;
     const _grid = "GENERAL_DOCUMENT_REQUIREMENTS", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {

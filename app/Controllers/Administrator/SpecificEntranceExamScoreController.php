@@ -80,6 +80,34 @@ class SpecificEntranceExamScoreController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        $rules = [
+            'admission_offering_id' => [
+                'label' => 'Pembukaan Pendaftaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[admission_offerings.id]',
+                'errors' => ['is_not_unique' => 'Pembukaan Pendaftaran tidak ditemukan.'],
+            ],
+            'subject_id' => [
+                'label' => 'Mata Pelajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[subjects.id]',
+                'errors' => ['is_not_unique' => 'Mata Pelajaran tidak ditemukan.'],
+            ],
+            'threshold_score' => [
+                'label' => 'Nilai Minimum',
+                'rules' => 'required|is_natural|less_than_equal_to[100]',
+                'errors' => [
+                    'is_natural' => 'Nilai Minimum harus berupa bilangan bulat 0-100.',
+                    'less_than_equal_to' => 'Nilai Minimum harus berupa bilangan bulat 0-100.',
+                ],
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
         $id = (int)($this->request->getPost('id') ?? 0);
         $model = new EntranceExamScoreModel();
         $actor = (int)session()->get('actor');

@@ -1,6 +1,6 @@
 <?= $this->extend('partials/layout') ?>
 <?= $this->section('content') ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <div class="row row-cards mb-4">
     <!-- Total Pendaftar -->
     <div class="col-sm-6 col-md-3">
@@ -14,10 +14,10 @@
                     </div>
                     <div class="col">
                         <div class="font-weight-medium">Total Pendaftar</div>
-                        <div class="text-secondary small">Tahun Akademik <?= $academic_year ?></div>
+                        <div class="text-secondary small">Tahun Akademik <?= esc((string) $academic_year) ?></div>
                     </div>
                     <div class="col-auto">
-                        <div class="fs-2 fw-bold text-blue"><?= $stats->total ?></div>
+                        <div class="fs-2 fw-bold text-blue"><?= (int) ($stats->total ?? 0) ?></div>
                     </div>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                         <div class="text-secondary small">Siap Diverifikasi</div>
                     </div>
                     <div class="col-auto">
-                        <div class="fs-2 fw-bold text-success"><?= $stats->finalized ?></div>
+                        <div class="fs-2 fw-bold text-success"><?= (int) ($stats->finalized ?? 0) ?></div>
                     </div>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                         <div class="text-secondary small">Sudah Sah</div>
                     </div>
                     <div class="col-auto">
-                        <div class="fs-2 fw-bold text-primary"><?= $stats->verified ?></div>
+                        <div class="fs-2 fw-bold text-primary"><?= (int) ($stats->verified ?? 0) ?></div>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                         <div class="text-secondary small">Butuh Pemeriksaan</div>
                     </div>
                     <div class="col-auto">
-                        <div class="fs-2 fw-bold text-warning"><?= $stats->pending ?></div>
+                        <div class="fs-2 fw-bold text-warning"><?= (int) ($stats->pending ?? 0) ?></div>
                     </div>
                 </div>
             </div>
@@ -111,7 +111,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3">
                 <h6 class="card-title fw-bold mb-0">
-                    <i class="cil-chart-pie me-2"></i> Top 5 <?= $majorLabel ?>
+                    <i class="cil-chart-pie me-2"></i> Top 5 <?= esc($majorLabel) ?>
                 </h6>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
@@ -147,8 +147,8 @@
                         <?php endif; ?>
                         <?php foreach($registrations_today as $row): ?>
                         <tr>
-                            <td class="small fw-bold"><?= $row->registration_number ?: '-' ?></td>
-                            <td class="small text-dark"><?= $row->full_name ?></td>
+                            <td class="small fw-bold"><?= esc((string) ($row->registration_number ?: '-')) ?></td>
+                            <td class="small text-dark"><?= esc((string) $row->full_name) ?></td>
                             <td class="text-center">
                                 <?php if ((int)$row->submitted === 1): ?>
                                     <span class="badge bg-success-lt text-success fw-bold px-2 py-1">SUDAH</span>
@@ -189,10 +189,10 @@
                         <?php endif; ?>
                         <?php foreach($pending_payments as $row): ?>
                         <tr>
-                            <td class="small fw-bold"><?= $row->registration_number ?: '-' ?></td>
-                            <td class="small text-dark"><?= $row->full_name ?></td>
+                            <td class="small fw-bold"><?= esc((string) ($row->registration_number ?: '-')) ?></td>
+                            <td class="small text-dark"><?= esc((string) $row->full_name) ?></td>
                             <td class="small text-muted">
-                                <?= date('d/m/Y H:i', strtotime($row->uploaded_at)) ?>
+                                <?= !empty($row->uploaded_at) ? esc(date('d/m/Y H:i', strtotime((string) $row->uploaded_at))) : '-' ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -209,10 +209,10 @@
     new Chart(trendCtx, {
         type: 'line',
         data: {
-            labels: <?= json_encode(array_column($trend_data, 'date_label')) ?>,
+            labels: <?= toJson(array_column($trend_data, 'date_label')) ?>,
             datasets: [{
                 label: 'Jumlah Pendaftar',
-                data: <?= json_encode(array_column($trend_data, 'total')) ?>,
+                data: <?= toJson(array_map('intval', array_column($trend_data, 'total'))) ?>,
                 borderColor: '#206bc4',
                 backgroundColor: 'rgba(32, 107, 196, 0.1)',
                 fill: true,
@@ -244,9 +244,9 @@
     new Chart(majorCtx, {
         type: 'doughnut',
         data: {
-            labels: <?= json_encode(array_column($major_stats, 'name')) ?>,
+            labels: <?= toJson(array_column($major_stats, 'name')) ?>,
             datasets: [{
-                data: <?= json_encode(array_column($major_stats, 'total')) ?>,
+                data: <?= toJson(array_map('intval', array_column($major_stats, 'total'))) ?>,
                 backgroundColor: ['#206bc4', '#2fb344', '#f59f00', '#d63939', '#64748b'],
                 borderWidth: 2,
                 borderColor: '#ffffff'

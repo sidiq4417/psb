@@ -82,17 +82,17 @@ class RegistrationSubjectGradeModel extends Model
     /**
      * Insert or update a subject grade record.
      *
-     * @param int $registration_id The registration ID.
-     * @param int $subject_id      The subject ID.
-     * @param int $score           The score value.
-     * @param int $threshold_score The threshold score value.
+     * @param int   $registration_id The registration ID.
+     * @param int   $subject_id      The subject ID.
+     * @param float $score           The score value (0-100, up to 2 decimals).
+     * @param float $threshold_score The threshold score value.
      * @return void
      */
-    public function upsert(int $registration_id, int $subject_id, int $score, int $threshold_score): void
+    public function upsert(int $registration_id, int $subject_id, float $score, float $threshold_score): void
     {
         $existing = $this->findByRegistrationIdAndSubject($registration_id, $subject_id);
         if ($existing) {
-            $this->update($existing->id, ['score' => $score]);
+            $this->update($existing->id, ['score' => $score, 'threshold_score' => $threshold_score]);
         } else {
             $this->insert([
                 'registration_id' => $registration_id,
@@ -162,5 +162,90 @@ class RegistrationSubjectGradeModel extends Model
                 ]);
             }
         }
+    }
+
+    /**
+     * Build the subject grade requirement list for a set of admission offerings.
+     *
+     * Combines the general requirements of each offering's academic year with
+     * the offering-specific requirements (soft-deleted rows excluded) and keeps
+     * one entry per subject. Used by the student grade page, the grade save
+     * check and the final submit check so all of them use the same list.
+     *
+     * @param array<int, int> $offering_ids The admission offering IDs.
+     * @return array<int, array{subject_id: int, subject_name: string, score: float, threshold_score: float}>
+     */
+    public function findRequirementList(array $offering_ids): array
+    {
+        $offering_ids = array_values(array_unique(array_filter(array_map('intval', $offering_ids), fn($id) => $id > 0)));
+        if (empty($offering_ids)) {
+            return [];
+        }
+
+        $offeringModel = new AdmissionOfferingModel();
+        $academic_year_ids = [];
+        foreach ($offering_ids as $oid) {
+            $ay_id = $offeringModel->getAcademicYearId($oid);
+            if ($ay_id > 0) {
+                $academic_year_ids[$ay_id] = $ay_id;
+            }
+        }
+
+        $rows = [];
+        $generalModel = new GeneralSubjectGradeRequirementModel();
+        foreach ($academic_year_ids as $ay_id) {
+            foreach ($generalModel->findAllByAcademicYear($ay_id)->getResult() as $row) {
+                if ((int)($row->is_deleted ?? 0) === 1) continue;
+                $rows[] = $row;
+            }
+        }
+
+        $specificModel = new SubjectGradeRequirementModel();
+        foreach ($offering_ids as $oid) {
+            foreach ($specificModel->findByAdmissionOfferingId($oid)->getResult() as $row) {
+                $rows[] = $row;
+            }
+        }
+
+        $requirements = [];
+        foreach ($rows as $row) {
+            $subject_id = (int)$row->subject_id;
+            if ($subject_id <= 0 || isset($requirements[$subject_id])) continue;
+            $requirements[$subject_id] = [
+                'subject_id' => $subject_id,
+                'subject_name' => $row->subject_name ?? '',
+                'score' => 0.0,
+                'threshold_score' => (float)($row->threshold_score ?? 0),
+            ];
+        }
+        return array_values($requirements);
+    }
+
+    /**
+     * List the required subjects of a registration that have no score yet.
+     *
+     * A subject counts as filled when its score is greater than zero, the same
+     * rule the grade page uses for its progress indicator.
+     *
+     * @param int $registration_id The registration ID.
+     * @param int $offering_id     The registration's admission offering ID.
+     * @return array<int, string> Names of the subjects without a score (empty when complete).
+     */
+    public function findMissingScores(int $registration_id, int $offering_id): array
+    {
+        $scored = [];
+        foreach ($this->findByRegistrationId($registration_id) as $grade) {
+            if ($grade->score !== null && (float)$grade->score > 0) {
+                $scored[(int)$grade->subject_id] = true;
+            }
+        }
+
+        $missing = [];
+        foreach ($this->findRequirementList([$offering_id]) as $req) {
+            if (!isset($scored[$req['subject_id']])) {
+                $missing[] = $req['subject_name'] !== '' ? $req['subject_name'] : ('Mapel #' . $req['subject_id']);
+            }
+        }
+        return $missing;
     }
 }

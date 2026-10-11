@@ -3,6 +3,7 @@
 namespace App\Libraries;
 
 use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\HTTP\IncomingRequest;
 use Config\Database;
 use Config\Setting;
 use Exception;
@@ -29,6 +30,10 @@ class Remember
     /**
      * Creates a "remember me" token for the given user and sets it as a cookie.
      *
+     * Any previous token of the user is replaced, so calling this after an
+     * automatic login rotates the token. Only a bcrypt hash of the validator
+     * is stored in the database.
+     *
      * @param int $actor
      *
      * @return void
@@ -41,7 +46,10 @@ class Remember
         $hashed_validator = password_hash($validator, PASSWORD_BCRYPT);
         $expiry = date('Y-m-d H:i:s', time() + ($day * 86400));
         if ($this->updateRememberUserToken($actor, $selector, $hashed_validator, $expiry)) {
-            set_cookie(Setting::REMEMBER_COOKIE_NAME, $token, 3600 * 24 * $day, '', '/', '', true, true, 'Lax');
+            // Secure flag follows the request: CodeIgniter refuses to send a Secure cookie over plain HTTP.
+            $request = service('request');
+            $secure = $request instanceof IncomingRequest && $request->isSecure();
+            set_cookie(Setting::REMEMBER_COOKIE_NAME, $token, 3600 * 24 * $day, '', '/', '', $secure, true, 'Lax');
         }
     }
 
@@ -67,7 +75,7 @@ class Remember
     private function parseToken(string $token): ?array
     {
         $parts = explode(':', $token);
-        if ($parts && count($parts) == 2) {
+        if (count($parts) === 2 && ctype_xdigit($parts[0]) && ctype_xdigit($parts[1])) {
             return [$parts[0], $parts[1]];
         }
         return null;
@@ -92,7 +100,7 @@ class Remember
         if (is_null($tokens)) {
             return false;
         }
-        return password_verify($validator, $tokens['hashed_validator']);
+        return password_verify($validator, (string) $tokens['hashed_validator']);
     }
 
     /**
@@ -104,6 +112,22 @@ class Remember
      */
     public function deleteUserToken(int $actor): void
     {
+        $this->revokeUserToken($actor);
+        delete_cookie(Setting::REMEMBER_COOKIE_NAME);
+    }
+
+    /**
+     * Removes the remember token for a user from the database only.
+     *
+     * Used when an administrator changes another user's password: the old cookie of
+     * that user stops working, while the administrator's own cookie is left alone.
+     *
+     * @param int $actor
+     *
+     * @return void
+     */
+    public function revokeUserToken(int $actor): void
+    {
         $this->db->table('users')
             ->where('id', $actor)
             ->update([
@@ -111,7 +135,6 @@ class Remember
                 'hashed_validator' => '',
                 'expiry' => null,
             ]);
-        delete_cookie(Setting::REMEMBER_COOKIE_NAME);
     }
 
     /**
@@ -139,12 +162,17 @@ class Remember
      */
     private function findUserIdBySelector(string $selector): int
     {
+        if ($selector === '') {
+            return 0;
+        }
         $row = $this->db->table('users')
             ->select('id')
             ->where('selector', $selector)
+            ->where('is_deleted', false)
+            ->where('expiry >=', date('Y-m-d H:i:s'))
             ->get()
             ->getRow();
-        return $row->id ?? 0;
+        return (int) ($row->id ?? 0);
     }
 
     /**
@@ -156,9 +184,13 @@ class Remember
      */
     private function findUserTokenBySelector(string $selector): ?array
     {
+        if ($selector === '') {
+            return null;
+        }
         $row = $this->db->table('users')
             ->select('id, selector, hashed_validator, expiry')
             ->where('selector', $selector)
+            ->where('is_deleted', false)
             ->where('expiry >=', date('Y-m-d H:i:s'))
             ->get()
             ->getRowArray();

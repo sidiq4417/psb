@@ -183,10 +183,78 @@ class AdmissionOfferingModel extends Model
             LEFT JOIN applicant_types xapptype ON x1.applicant_type_id = xapptype.id
             LEFT JOIN admission_pathways xpathway ON x1.admission_pathway_id = xpathway.id
             WHERE x1.is_deleted = FALSE
+            AND xperiod.is_deleted = FALSE
             AND CURRENT_DATE BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
             $where
             ORDER BY x1.sort_order, x1.id
         ", $params);
+    }
+
+    /**
+     * Find an offering that is currently open for registration.
+     *
+     * Uses the same conditions as findPublicList(): the offering and its
+     * admission period are not deleted and today falls within the period's
+     * registration_start_at..registration_end_at window.
+     *
+     * @param int $id The offering ID.
+     * @return object|null The offering with its period data, or null when not open.
+     */
+    public function findOpenById(int $id): ?object
+    {
+        if ($id <= 0) {
+            return null;
+        }
+        $db = db_connect();
+        $row = $db->query('
+            SELECT x1.id
+                , x1.admission_period_id
+                , xperiod.academic_year_id
+                , xperiod.registration_fee
+                , xperiod.registration_start_at
+                , xperiod.registration_end_at
+            FROM admission_offerings x1
+            JOIN admission_periods xperiod ON x1.admission_period_id = xperiod.id
+            WHERE x1.id = ?
+            AND x1.is_deleted = FALSE
+            AND xperiod.is_deleted = FALSE
+            AND CURRENT_DATE BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
+            LIMIT 1
+        ', [$id])->getRow();
+        return is_object($row) ? $row : null;
+    }
+
+    /**
+     * Check whether an offering is currently open for registration.
+     *
+     * @param int $id The offering ID.
+     * @return bool True when the offering can be registered/edited today.
+     */
+    public function isOpen(int $id): bool
+    {
+        return $this->findOpenById($id) !== null;
+    }
+
+    /**
+     * Get the academic year ID of an offering through its admission period.
+     *
+     * @param int $id The offering ID.
+     * @return int The academic year ID, or 0 if not found.
+     */
+    public function getAcademicYearId(int $id): int
+    {
+        if ($id <= 0) {
+            return 0;
+        }
+        $db = db_connect();
+        $row = $db->query('
+            SELECT xperiod.academic_year_id
+            FROM admission_offerings x1
+            JOIN admission_periods xperiod ON x1.admission_period_id = xperiod.id
+            WHERE x1.id = ?
+            LIMIT 1
+        ', [$id])->getRow();
+        return (int)($row->academic_year_id ?? 0);
     }
 
     /**

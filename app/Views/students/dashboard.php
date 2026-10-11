@@ -3,12 +3,12 @@
 <div class="row mb-5">
     <div class="col-12">
         <div class="card border-0 shadow-sm overflow-hidden"
-            style="background: linear-gradient(135deg, #1d2671 0%, #c33764 100%); min-height: 250px;">
+            style="background: linear-gradient(135deg, #1b400d 0%, #2e6b12 100%); border-bottom: 4px solid #fff500 !important; min-height: 250px;">
             <div class="card-body p-5 d-flex align-items-center">
                 <div class="text-white">
-                    <h1 class="display-5 fw-bold mb-3">Halo, <?= session()->get('full_name') ?>!</h1>
-                    <p class="fs-4 opacity-75 mb-4 text-light">Selamat Datang di Portal Penerimaan Murid Baru
-                        <br><span class="fw-bold fs-3"><?= $institution_name ?></span><?= $admission_year > 0 ? ' Tahun Akademik ' . $academic_year : '' ?></p>
+                    <h1 class="display-5 fw-bold mb-3">Halo, <?= esc((string) session()->get('full_name')) ?>!</h1>
+                    <p class="fs-4 opacity-75 mb-4 text-light">Selamat Datang di Portal Penerimaan Santri Baru
+                        <br><span class="fw-bold fs-3"><?= esc($institution_name) ?></span><?= $admission_year > 0 ? ' Tahun Akademik ' . esc($academic_year) : '' ?></p>
                     <div class="d-flex flex-wrap gap-2 mt-2">
                         <?php if ($is_submitted): ?>
                             <a href="<?= base_url('students/confirmation') ?>" class="btn btn-light btn-lg px-4 fw-bold">
@@ -53,12 +53,12 @@
                             $selectionClass = 'text-secondary opacity-50';
                         }
                         ?>
-                        <span class="<?= $selectionClass ?>"><?= $selection_status_label ?></span>
+                        <span class="<?= esc($selectionClass, 'attr') ?>"><?= esc($selection_status_label) ?></span>
                     </div>
                 </div>
             </div>
             <div class="mt-auto border-top pt-3 small text-muted">
-                Hasil penilaian resmi panitia PMB.
+                Hasil penilaian resmi panitia PSB.
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
                             default => 'text-danger'
                         };
                         ?>
-                        <span class="<?= $statusClass ?>"><?= $transfer_proof_status ?></span>
+                        <span class="<?= esc($statusClass, 'attr') ?>"><?= esc($transfer_proof_status) ?></span>
                     </div>
                 </div>
             </div>
@@ -102,7 +102,7 @@
                 </div>
             </div>
             <div class="mt-auto border-top pt-3 small text-muted">
-                Berdasarkan jalur masuk & <?= lcfirst($majorLabel) ?>.
+                Berdasarkan jalur masuk & <?= esc(lcfirst($majorLabel)) ?>.
             </div>
         </div>
     </div>
@@ -114,14 +114,18 @@
                 </div>
                 <div>
                     <div class="text-secondary small fw-bold text-uppercase">Bantuan?</div>
-                    <div class="fs-6 fw-bold text-dark mt-1"><?= $mobile_phone ?></div>
+                    <div class="fs-6 fw-bold text-dark mt-1"><?= esc($mobile_phone) ?></div>
                 </div>
             </div>
             <div class="mt-auto border-top pt-3 d-flex justify-content-between">
-                <a href="mailto:<?= $email ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
+                <?php if ($email !== ''): ?>
+                <a href="mailto:<?= esc($email, 'attr') ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
                         class="cil-envelope-closed me-1"></i> Email</a>
-                <a href="tel:<?= $telephone ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
+                <?php endif; ?>
+                <?php if ($telephone !== ''): ?>
+                <a href="tel:<?= esc($telephone, 'attr') ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
                         class="cil-phone me-1"></i> Telp</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -132,7 +136,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
                 <h6 class="card-title fw-bold mb-0">
-                    <i class="cil-list me-2"></i> <?= $majorLabel ?> Yang Masih Dibuka
+                    <i class="cil-list me-2"></i> <?= esc($majorLabel) ?> Yang Masih Dibuka
                 </h6>
             </div>
             <div class="card-body p-0">
@@ -140,7 +144,7 @@
                     <?php if (empty($study_programs)): ?>
                         <div class="p-5 text-center">
                             <i class="cil-ban fs-1 text-muted opacity-25 mb-3"></i>
-                            <p class="text-muted">Maaf, saat ini tidak ada <?= lcfirst($majorLabel) ?> yang dibuka.</p>
+                            <p class="text-muted">Maaf, saat ini tidak ada <?= esc(lcfirst($majorLabel)) ?> yang dibuka.</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -188,7 +192,7 @@
                                     <?php endif; ?>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold small <?= $done ? 'text-success' : 'text-dark' ?>"><?= $item['label'] ?></div>
+                                    <div class="fw-semibold small <?= $done ? 'text-success' : 'text-dark' ?>"><?= esc($item['label']) ?></div>
                                 </div>
                                 <i class="cil-chevron-right text-muted" style="font-size: 0.75rem;"></i>
                             </div>

@@ -75,10 +75,14 @@ class EntryGradeController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'branch_id' => ['label' => 'Cabang Sekolah', 'rules' => 'required|is_natural_no_zero'],
-            'name' => ['label' => 'Nama Tingkat', 'rules' => 'required'],
-            'grade_number' => ['label' => 'Nomor Urut Kelas', 'rules' => 'permit_empty|is_natural'],
-            'sort_order' => ['label' => 'Urutan', 'rules' => 'permit_empty|is_natural'],
+            'branch_id' => [
+                'label' => 'Cabang Sekolah',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[branches.id]',
+                'errors' => ['is_not_unique' => 'Cabang Sekolah tidak ditemukan.'],
+            ],
+            'name' => ['label' => 'Nama Tingkat', 'rules' => 'required|max_length[100]'],
+            'grade_number' => ['label' => 'Nomor Urut Kelas', 'rules' => 'permit_empty|is_natural|less_than_equal_to[100]'],
+            'sort_order' => ['label' => 'Urutan', 'rules' => 'permit_empty|is_natural|less_than_equal_to[1000000]'],
         ];
 
         if (!$this->validate($rules)) {

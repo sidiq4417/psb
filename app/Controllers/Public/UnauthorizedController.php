@@ -23,9 +23,9 @@ class UnauthorizedController extends BaseController
     public function index(): string
     {
         $vars = [
-            'title' => 'Unauthorized',
+            'title' => 'Akses Ditolak',
             'error_code' => '401 Unauthorized',
-            'error_message' => 'You don’t have permission to access this page.',
+            'error_message' => 'Maaf, Anda tidak memiliki hak akses untuk halaman ini.',
         ];
         return view('public/unauthorized', $vars);
     }

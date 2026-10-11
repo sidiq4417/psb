@@ -67,7 +67,7 @@ class GeneralEntranceExamScoreController extends BaseController
 
         $vars = [
             'title' => 'Persyaratan Umum Ujian Saringan Masuk',
-            'subjects' => json_encode($subjects),
+            'subjects' => toJson($subjects),
             'academic_year_id' => $academic_year_id,
             'academic_year' => $academic_year,
             'admission_periods' => $admission_periods,
@@ -99,6 +99,34 @@ class GeneralEntranceExamScoreController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        $rules = [
+            'academic_year_id' => [
+                'label' => 'Tahun Ajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[academic_years.id]',
+                'errors' => ['is_not_unique' => 'Tahun Ajaran tidak ditemukan.'],
+            ],
+            'subject_id' => [
+                'label' => 'Mata Pelajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[subjects.id]',
+                'errors' => ['is_not_unique' => 'Mata Pelajaran tidak ditemukan.'],
+            ],
+            'threshold_score' => [
+                'label' => 'Nilai Minimum',
+                'rules' => 'required|is_natural|less_than_equal_to[100]',
+                'errors' => [
+                    'is_natural' => 'Nilai Minimum harus berupa bilangan bulat 0-100.',
+                    'less_than_equal_to' => 'Nilai Minimum harus berupa bilangan bulat 0-100.',
+                ],
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
         $id = (int)($this->request->getPost('id') ?? 0);
         $academic_year_id = (int)$this->request->getPost('academic_year_id');
         $subject_id = (int)$this->request->getPost('subject_id');
@@ -108,7 +136,17 @@ class GeneralEntranceExamScoreController extends BaseController
         $model = new GeneralEntranceExamScoreModel();
 
         if ($id > 0) {
+            $existing = $model->where('unique_id', $unique_id)->where('id !=', $id)->first();
+            if ($existing) {
+                return $this->response->setJSON([
+                    'id' => 0,
+                    'success' => false,
+                    'message' => 'Mata Pelajaran ini sudah diatur untuk tahun ajaran tersebut.',
+                ]);
+            }
+
             $model->update($id, [
+                'unique_id' => $unique_id,
                 'academic_year_id' => $academic_year_id,
                 'subject_id' => $subject_id,
                 'threshold_score' => $threshold_score,

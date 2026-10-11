@@ -11,8 +11,8 @@
     <div class="card-body" id="GENERAL_ENTRANCE_EXAM_SCORES"></div>
 </div>
 <script>
-    const academic_year_id = +'<?= $academic_year_id ?>';
-    DS.Subjects = H.StrToObject('<?= is_string($subjects) ? $subjects : json_encode($subjects) ?>');
+    const academic_year_id = <?= (int) $academic_year_id ?>;
+    DS.Subjects = <?= is_string($subjects) ? $subjects : toJson($subjects) ?>;
     const _grid = "GENERAL_ENTRANCE_EXAM_SCORES", _form = _grid + "_FORM";
 
     new DataGrid(_grid, {

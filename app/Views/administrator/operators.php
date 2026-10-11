@@ -28,7 +28,7 @@
         fields: [
             {label: "Nama Lengkap", name: "full_name", type: "text", required: true},
             {label: "Email", name: "email", type: "text", required: true},
-            {label: "Kata Sandi", name: "password", type: "password"},
+            {label: "Kata Sandi", name: "password", type: "password", placeholder: "Minimal 8 karakter. Kosongkan jika tidak ingin mengubah kata sandi"},
         ],
         onShow: function (nv, instance) {
             const password = instance.getElement("password");

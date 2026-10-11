@@ -82,12 +82,12 @@ class DocumentController extends BaseController
 
         $validation->setRules([
             'name' => [
-                'label' => 'Document Name',
-                'rules' => 'required',
+                'label' => 'Nama Dokumen',
+                'rules' => 'required|max_length[255]',
             ],
             'max_size' => [
-                'label' => 'Maximum Document Size',
-                'rules' => 'required|is_natural',
+                'label' => 'Ukuran Maksimum Dokumen (KB)',
+                'rules' => 'required|is_natural|less_than_equal_to[51200]',
             ],
         ]);
 

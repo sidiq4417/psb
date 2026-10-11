@@ -67,7 +67,7 @@ class GeneralDocumentRequirementController extends BaseController
 
         $vars = [
             'title' => 'Persyaratan Umum Dokumen Pendaftaran',
-            'documents' => json_encode($documents),
+            'documents' => toJson($documents),
             'academic_year_id' => $academic_year_id,
             'academic_year' => $academic_year,
             'admission_periods' => $admission_periods,
@@ -101,16 +101,47 @@ class GeneralDocumentRequirementController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        $rules = [
+            'academic_year_id' => [
+                'label' => 'Tahun Ajaran',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[academic_years.id]',
+                'errors' => ['is_not_unique' => 'Tahun Ajaran tidak ditemukan.'],
+            ],
+            'document_id' => [
+                'label' => 'Dokumen',
+                'rules' => 'required|is_natural_no_zero|is_not_unique[admission_documents.id]',
+                'errors' => ['is_not_unique' => 'Dokumen tidak ditemukan.'],
+            ],
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ]);
+        }
+
         $id = (int)($this->request->getPost('id') ?? 0);
         $academic_year_id = (int)$this->request->getPost('academic_year_id');
         $document_id = (int)$this->request->getPost('document_id');
-        $required = (bool)$this->request->getPost('required');
+        // FormBuilder posts checkbox values as "true"/"false".
+        $required = filter_var($this->request->getPost('required'), FILTER_VALIDATE_BOOLEAN);
         $unique_id = 'general_document_requirement:' . $academic_year_id . ':' . $document_id;
         $actor = (int)session()->get('actor');
         $model = new GeneralDocumentRequirementModel();
 
         if ($id > 0) {
+            $existing = $model->where('unique_id', $unique_id)->where('id !=', $id)->first();
+            if ($existing) {
+                return $this->response->setJSON([
+                    'id' => 0,
+                    'success' => false,
+                    'message' => 'Dokumen ini sudah diatur untuk tahun ajaran tersebut.',
+                ]);
+            }
+
             $model->update($id, [
+                'unique_id' => $unique_id,
                 'academic_year_id' => $academic_year_id,
                 'document_id' => $document_id,
                 'required' => $required ? 1 : 0,
