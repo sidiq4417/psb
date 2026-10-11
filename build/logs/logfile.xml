@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/var/www/spmb.sekolahku.web.id/phpunit.xml.dist" tests="14" assertions="26" errors="0" failures="0" skipped="0" time="0.515668">
+    <testsuite name="App" tests="14" assertions="26" errors="0" failures="0" skipped="0" time="0.515668">
+      <testsuite name="ExampleDatabaseTest" file="/var/www/spmb.sekolahku.web.id/tests/database/ExampleDatabaseTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.506171">
+        <testcase name="testModelFindAll" file="/var/www/spmb.sekolahku.web.id/tests/database/ExampleDatabaseTest.php" line="17" class="ExampleDatabaseTest" classname="ExampleDatabaseTest" assertions="1" time="0.253941"/>
+        <testcase name="testSoftDeleteLeavesRow" file="/var/www/spmb.sekolahku.web.id/tests/database/ExampleDatabaseTest.php" line="28" class="ExampleDatabaseTest" classname="ExampleDatabaseTest" assertions="2" time="0.252229"/>
+      </testsuite>
+      <testsuite name="ExampleSessionTest" file="/var/www/spmb.sekolahku.web.id/tests/session/ExampleSessionTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000496">
+        <testcase name="testSessionSimple" file="/var/www/spmb.sekolahku.web.id/tests/session/ExampleSessionTest.php" line="10" class="ExampleSessionTest" classname="ExampleSessionTest" assertions="1" time="0.000496"/>
+      </testsuite>
+      <testsuite name="HealthTest" file="/var/www/spmb.sekolahku.web.id/tests/unit/HealthTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.003588">
+        <testcase name="testIsDefinedAppPath" file="/var/www/spmb.sekolahku.web.id/tests/unit/HealthTest.php" line="12" class="HealthTest" classname="HealthTest" assertions="1" time="0.000271"/>
+        <testcase name="testBaseUrlHasBeenSet" file="/var/www/spmb.sekolahku.web.id/tests/unit/HealthTest.php" line="17" class="HealthTest" classname="HealthTest" assertions="2" time="0.003317"/>
+      </testsuite>
+      <testsuite name="MigrationSmokeTest" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" tests="9" assertions="19" errors="0" failures="0" skipped="0" time="0.005413">
+        <testcase name="testApplicationSettingsTableExists" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="32" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="2" time="0.001136"/>
+        <testcase name="testAdmissionOfferingsTableQueries" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="38" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="2" time="0.000728"/>
+        <testcase name="testAdmissionPeriodsTableQueries" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="46" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="2" time="0.000275"/>
+        <testcase name="testRegistrationTablesExist" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="52" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="3" time="0.000291"/>
+        <testcase name="testSubmittedBooleanReturnsInteger" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="59" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="1" time="0.000414"/>
+        <testcase name="testRegistrationModelFindByStudentId" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="71" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="1" time="0.000967"/>
+        <testcase name="testRegistrationModelFindByAdmissionOfferingId" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="78" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="1" time="0.000406"/>
+        <testcase name="testRegistrationsTableHasExpectedColumns" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="92" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="3" time="0.000927"/>
+        <testcase name="testCoreTablesExist" file="/var/www/spmb.sekolahku.web.id/tests/unit/MigrationSmokeTest.php" line="100" class="MigrationSmokeTest" classname="MigrationSmokeTest" assertions="4" time="0.000270"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

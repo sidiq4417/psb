@@ -1,0 +1,65 @@
+body {
+    font-size: 0.9rem;
+}
+
+.simplebar-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.alert-container {
+    z-index: 1055;
+}
+
+label.list-group-item:hover {
+    cursor: pointer;
+}
+
+label.list-group-item:hover {
+    cursor: pointer;
+}
+
+.datagrid tr.is_deleted td {
+    text-decoration: line-through;
+    color: #bb121b;
+}
+
+.datagrid .btn i,
+.datagrid .btn-group .btn i {
+    line-height: 1 !important;
+    vertical-align: middle;
+}
+
+.ts-wrapper {
+    font-size: .875rem;
+}
+
+.ts-dropdown,
+.tom-select-dropdown {
+    z-index: 1060 !important;
+}
+
+.ts-dropdown-content {
+    background-color: #fff;
+}
+
+.ts-dropdown .option.active {
+    background-color: #e9ecef;
+    color: #000000;
+}
+
+.sidebar {
+    left: 0;
+}
+
+.sidebar-nav .nav-link {
+    border-left: 1px solid transparent;
+}
+
+.sidebar-nav .nav-link.active {
+    border-left-color: #e0b976;
+    background: linear-gradient(90deg, rgba(224, 185, 118, 0.15) 0%, transparent 100%);
+    color: #e0b976;
+    font-weight: 500;
+}

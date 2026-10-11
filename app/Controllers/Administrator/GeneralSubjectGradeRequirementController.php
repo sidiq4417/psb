@@ -1,0 +1,146 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers\Administrator;
+
+use App\Models\AcademicYearModel;
+use App\Models\AdmissionPeriodModel;
+use App\Models\GeneralSubjectGradeRequirementModel;
+use App\Models\SubjectModel;
+use App\Traits\DataTrait;
+use App\Controllers\BaseController;
+use CodeIgniter\HTTP\ResponseInterface;
+use Config\Services;
+use ReflectionException;
+
+/**
+ * Class GeneralSubjectGradeRequirementController
+ *
+ * Handles the management of general subject grade requirements per academic year.
+ *
+ * @package App\Controllers\Administrator
+ */
+class GeneralSubjectGradeRequirementController extends BaseController
+{
+    protected string $table = 'general_subject_grade_requirements';
+    protected int $id = 0;
+
+    use DataTrait;
+
+    /**
+     * GeneralSubjectGradeRequirementController Constructor.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $request = Services::request();
+        $this->id = (int)($request->getPost('id') ?? 0);
+    }
+
+    /**
+     * Render the general subject grade requirements page.
+     *
+     * @param int $academic_year_id The academic year ID to filter by.
+     * @return string Rendered HTML view.
+     */
+    public function index(int $academic_year_id = 0): string
+    {
+        $subjectModel = new SubjectModel();
+        $ayModel = new AcademicYearModel();
+        $apModel = new AdmissionPeriodModel();
+        $admission_periods = [];
+
+        foreach ($apModel->findAll() as $p) {
+            if ((int)$p->academic_year_id === $academic_year_id) {
+                $admission_periods[] = $p;
+            }
+        }
+
+        $subjects = [];
+        foreach ($subjectModel->findAll() as $row) {
+            $subjects[$row->id] = $row->name;
+        }
+
+        $academic_year = $academic_year_id > 0 ? $ayModel->find($academic_year_id) : null;
+
+        $vars = [
+            'title' => 'Persyaratan Umum Nilai',
+            'subjects' => json_encode($subjects),
+            'academic_year_id' => $academic_year_id,
+            'academic_year' => $academic_year,
+            'admission_periods' => $admission_periods,
+        ];
+        return view('administrator/general-subject-grade-requirements', $vars);
+    }
+
+    /**
+     * Return a list of general subject grade requirements in JSON format.
+     *
+     * @return ResponseInterface JSON response containing records.
+     */
+    public function lists(): ResponseInterface
+    {
+        $academic_year_id = (int)$this->request->getPost('academic_year_id');
+        $model = new GeneralSubjectGradeRequirementModel();
+        $records = $model->findAllByAcademicYear($academic_year_id)->getResult();
+        return $this->response->setJSON([
+            'records' => $records
+        ]);
+    }
+
+    /**
+     * Save or update a general subject grade requirement record.
+     *
+     * @return ResponseInterface JSON response indicating success or failure.
+     * @throws ReflectionException
+     */
+    public function save(): ResponseInterface
+    {
+        $id = (int)($this->request->getPost('id') ?? 0);
+        $academic_year_id = (int)$this->request->getPost('academic_year_id');
+        $subject_id = (int)$this->request->getPost('subject_id');
+        $threshold_score = (int)$this->request->getPost('threshold_score');
+        $unique_id = 'general_subject_grade_requirement:' . $academic_year_id . ':' . $subject_id;
+        $actor = (int)session()->get('actor');
+        $model = new GeneralSubjectGradeRequirementModel();
+
+        if ($id > 0) {
+            $model->update($id, [
+                'academic_year_id' => $academic_year_id,
+                'subject_id' => $subject_id,
+                'threshold_score' => $threshold_score,
+                'updated_by' => $actor,
+            ]);
+            return $this->response->setJSON([
+                'id' => $id,
+                'success' => true,
+                'message' => 'Updated successfully.',
+            ]);
+        }
+
+        $existing = $model->where('unique_id', $unique_id)->first();
+        if ($existing) {
+            return $this->response->setJSON([
+                'id' => 0,
+                'success' => false,
+                'message' => 'Unique identifier already exists.',
+            ]);
+        }
+
+        $insert_id = $model->insert([
+            'unique_id' => $unique_id,
+            'academic_year_id' => $academic_year_id,
+            'subject_id' => $subject_id,
+            'threshold_score' => $threshold_score,
+            'created_by' => $actor,
+        ]);
+
+        return $this->response->setJSON([
+            'id' => $insert_id ? (int)$insert_id : 0,
+            'success' => (bool)$insert_id,
+            'message' => $insert_id ? 'Saved successfully.' : 'Error occurred.',
+        ]);
+    }
+}

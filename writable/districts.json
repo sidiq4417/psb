@@ -1,0 +1,2572 @@
+[
+  {
+    "district_id": "010100",
+    "district_name": "Kab. Kepulauan Seribu",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "016000",
+    "district_name": "Kota Jakarta Pusat",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "016100",
+    "district_name": "Kota Jakarta Utara",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "016200",
+    "district_name": "Kota Jakarta Barat",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "016300",
+    "district_name": "Kota Jakarta Selatan",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "016400",
+    "district_name": "Kota Jakarta Timur",
+    "province_id": "010000"
+  },
+  {
+    "district_id": "020500",
+    "district_name": "Kab. Bogor",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "020600",
+    "district_name": "Kab. Sukabumi",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "020700",
+    "district_name": "Kab. Cianjur",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "020800",
+    "district_name": "Kab. Bandung",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021000",
+    "district_name": "Kab. Sumedang",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021100",
+    "district_name": "Kab. Garut",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021200",
+    "district_name": "Kab. Tasikmalaya",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021400",
+    "district_name": "Kab. Ciamis",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021500",
+    "district_name": "Kab. Kuningan",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021600",
+    "district_name": "Kab. Majalengka",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021700",
+    "district_name": "Kab. Cirebon",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021800",
+    "district_name": "Kab. Indramayu",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "021900",
+    "district_name": "Kab. Subang",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "022000",
+    "district_name": "Kab. Purwakarta",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "022100",
+    "district_name": "Kab. Karawang",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "022200",
+    "district_name": "Kab. Bekasi",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "022300",
+    "district_name": "Kab. Bandung Barat",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "022500",
+    "district_name": "Kab. Pangandaran",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026000",
+    "district_name": "Kota Bandung",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026100",
+    "district_name": "Kota Bogor",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026200",
+    "district_name": "Kota Sukabumi",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026300",
+    "district_name": "Kota Cirebon",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026500",
+    "district_name": "Kota Bekasi",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026600",
+    "district_name": "Kota Depok",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026700",
+    "district_name": "Kota Cimahi",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026800",
+    "district_name": "Kota Tasikmalaya",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "026900",
+    "district_name": "Kota Banjar",
+    "province_id": "020000"
+  },
+  {
+    "district_id": "030100",
+    "district_name": "Kab. Cilacap",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030200",
+    "district_name": "Kab. Banyumas",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030300",
+    "district_name": "Kab. Purbalingga",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030400",
+    "district_name": "Kab. Banjarnegara",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030500",
+    "district_name": "Kab. Kebumen",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030600",
+    "district_name": "Kab. Purworejo",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030700",
+    "district_name": "Kab. Wonosobo",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030800",
+    "district_name": "Kab. Magelang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "030900",
+    "district_name": "Kab. Boyolali",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031000",
+    "district_name": "Kab. Klaten",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031100",
+    "district_name": "Kab. Sukoharjo",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031200",
+    "district_name": "Kab. Wonogiri",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031300",
+    "district_name": "Kab. Karanganyar",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031400",
+    "district_name": "Kab. Sragen",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031500",
+    "district_name": "Kab. Grobogan",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031600",
+    "district_name": "Kab. Blora",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031700",
+    "district_name": "Kab. Rembang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031800",
+    "district_name": "Kab. Pati",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "031900",
+    "district_name": "Kab. Kudus",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032000",
+    "district_name": "Kab. Jepara",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032100",
+    "district_name": "Kab. Demak",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032200",
+    "district_name": "Kab. Semarang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032300",
+    "district_name": "Kab. Temanggung",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032400",
+    "district_name": "Kab. Kendal",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032500",
+    "district_name": "Kab. Batang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032600",
+    "district_name": "Kab. Pekalongan",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032700",
+    "district_name": "Kab. Pemalang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032800",
+    "district_name": "Kab. Tegal",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "032900",
+    "district_name": "Kab. Brebes",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036000",
+    "district_name": "Kota Magelang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036100",
+    "district_name": "Kota Surakarta",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036200",
+    "district_name": "Kota Salatiga",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036300",
+    "district_name": "Kota Semarang",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036400",
+    "district_name": "Kota Pekalongan",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "036500",
+    "district_name": "Kota Tegal",
+    "province_id": "030000"
+  },
+  {
+    "district_id": "040100",
+    "district_name": "Kab. Bantul",
+    "province_id": "040000"
+  },
+  {
+    "district_id": "040200",
+    "district_name": "Kab. Sleman",
+    "province_id": "040000"
+  },
+  {
+    "district_id": "040300",
+    "district_name": "Kab. Gunung Kidul",
+    "province_id": "040000"
+  },
+  {
+    "district_id": "040400",
+    "district_name": "Kab. Kulon Progo",
+    "province_id": "040000"
+  },
+  {
+    "district_id": "046000",
+    "district_name": "Kota Yogyakarta",
+    "province_id": "040000"
+  },
+  {
+    "district_id": "050100",
+    "district_name": "Kab. Gresik",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050200",
+    "district_name": "Kab. Sidoarjo",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050300",
+    "district_name": "Kab. Mojokerto",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050400",
+    "district_name": "Kab. Jombang",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050500",
+    "district_name": "Kab. Bojonegoro",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050600",
+    "district_name": "Kab. Tuban",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050700",
+    "district_name": "Kab. Lamongan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050800",
+    "district_name": "Kab. Madiun",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "050900",
+    "district_name": "Kab. Ngawi",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051000",
+    "district_name": "Kab. Magetan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051100",
+    "district_name": "Kab. Ponorogo",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051200",
+    "district_name": "Kab. Pacitan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051300",
+    "district_name": "Kab. Kediri",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051400",
+    "district_name": "Kab. Nganjuk",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051500",
+    "district_name": "Kab. Blitar",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051600",
+    "district_name": "Kab. Tulungagung",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051700",
+    "district_name": "Kab. Trenggalek",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051800",
+    "district_name": "Kab. Malang",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "051900",
+    "district_name": "Kab. Pasuruan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052000",
+    "district_name": "Kab. Probolinggo",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052100",
+    "district_name": "Kab. Lumajang",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052200",
+    "district_name": "Kab. Bondowoso",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052300",
+    "district_name": "Kab. Situbondo",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052400",
+    "district_name": "Kab. Jember",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052500",
+    "district_name": "Kab. Banyuwangi",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052600",
+    "district_name": "Kab. Pamekasan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052700",
+    "district_name": "Kab. Sampang",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052800",
+    "district_name": "Kab. Sumenep",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "052900",
+    "district_name": "Kab. Bangkalan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056000",
+    "district_name": "Kota Surabaya",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056100",
+    "district_name": "Kota Malang",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056200",
+    "district_name": "Kota Madiun",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056300",
+    "district_name": "Kota Kediri",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056400",
+    "district_name": "Kota Mojokerto",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056500",
+    "district_name": "Kota Blitar",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056600",
+    "district_name": "Kota Pasuruan",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056700",
+    "district_name": "Kota Probolinggo",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "056800",
+    "district_name": "Kota Batu",
+    "province_id": "050000"
+  },
+  {
+    "district_id": "060100",
+    "district_name": "Kab. Aceh Besar",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060200",
+    "district_name": "Kab. Pidie",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060300",
+    "district_name": "Kab. Aceh Utara",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060400",
+    "district_name": "Kab. Aceh Timur",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060500",
+    "district_name": "Kab. Aceh Tengah",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060600",
+    "district_name": "Kab. Aceh Barat",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060700",
+    "district_name": "Kab. Aceh Selatan",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "060800",
+    "district_name": "Kab. Aceh Tenggara",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061100",
+    "district_name": "Kab. Simeulue",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061200",
+    "district_name": "Kab. Bireuen",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061300",
+    "district_name": "Kab. Aceh Singkil",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061400",
+    "district_name": "Kab. Aceh Tamiang",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061500",
+    "district_name": "Kab. Nagan Raya",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061600",
+    "district_name": "Kab. Aceh Jaya",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061700",
+    "district_name": "Kab. Aceh Barat Daya",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061800",
+    "district_name": "Kab. Gayo Lues",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "061900",
+    "district_name": "Kab. Bener Meriah",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "062000",
+    "district_name": "Kab. Pidie Jaya",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "066000",
+    "district_name": "Kota Sabang",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "066100",
+    "district_name": "Kota Banda Aceh",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "066200",
+    "district_name": "Kota Lhokseumawe",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "066300",
+    "district_name": "Kota Langsa",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "066400",
+    "district_name": "Kab. Sabussalam",
+    "province_id": "060000"
+  },
+  {
+    "district_id": "070100",
+    "district_name": "Kab. Deli Serdang",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070200",
+    "district_name": "Kab. Langkat",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070300",
+    "district_name": "Kab. Karo",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070400",
+    "district_name": "Kab. Simalungun",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070500",
+    "district_name": "Kab. Dairi",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070600",
+    "district_name": "Kab. Asahan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070700",
+    "district_name": "Kab. Labuhan Batu",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070800",
+    "district_name": "Kab. Tapanuli Utara",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "070900",
+    "district_name": "Kab. Tapanuli Tengah",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071000",
+    "district_name": "Kab. Tapanuli Selatan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071100",
+    "district_name": "Kab. Nias",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071500",
+    "district_name": "Kab. Mandailing Natal",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071600",
+    "district_name": "Kab. Toba Samosir",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071700",
+    "district_name": "Kab. Nias Selatan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071800",
+    "district_name": "Kab. Pak pak Bharat",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "071900",
+    "district_name": "Kab. Humbang Hasudutan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072000",
+    "district_name": "Kab. Samosir",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072100",
+    "district_name": "Kab. Serdang Bedagai",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072200",
+    "district_name": "Kab. Batubara",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072300",
+    "district_name": "Kab. Padang Lawas utara",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072400",
+    "district_name": "Kab. Padang Lawas",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072500",
+    "district_name": "Kab. Labuhan Batu Utara",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072600",
+    "district_name": "Kab. Labuhan Batu Selatan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072700",
+    "district_name": "Kab. Nias Barat",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "072800",
+    "district_name": "Kab. Nias Utara",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076000",
+    "district_name": "Kota Medan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076100",
+    "district_name": "Kota Binjai",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076200",
+    "district_name": "Kota Tebing Tinggi",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076300",
+    "district_name": "Kota Pematang Siantar",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076400",
+    "district_name": "Kota Tanjung Balai",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076500",
+    "district_name": "Kota Sibolga",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076600",
+    "district_name": "Kota Padang Sidempuan",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "076700",
+    "district_name": "Kota Gunung Sitoli",
+    "province_id": "070000"
+  },
+  {
+    "district_id": "080100",
+    "district_name": "Kab. Agam",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080200",
+    "district_name": "Kab. Pasaman",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080300",
+    "district_name": "Kab. Lima Puluh Koto",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080400",
+    "district_name": "Kab. Solok",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080500",
+    "district_name": "Kab. Padang Pariaman",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080600",
+    "district_name": "Kab. Pesisir Selatan",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080700",
+    "district_name": "Kab. Tanah Datar",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "080800",
+    "district_name": "Kab. Sawahlunto/ Sijunjung",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "081000",
+    "district_name": "Kab. Kepulauan Mentawai",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "081100",
+    "district_name": "Kab. Solok Selatan",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "081200",
+    "district_name": "Kab. Dharmas Raya",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "081300",
+    "district_name": "Kab. Pasaman Barat",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086000",
+    "district_name": "Kota Bukittinggi",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086100",
+    "district_name": "Kota Padang",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086200",
+    "district_name": "Kota Padang Panjang",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086300",
+    "district_name": "Kota Sawah Lunto",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086400",
+    "district_name": "Kota Solok",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086500",
+    "district_name": "Kota Payakumbuh",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "086600",
+    "district_name": "Kota Pariaman",
+    "province_id": "080000"
+  },
+  {
+    "district_id": "090100",
+    "district_name": "Kab. Kampar",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "090200",
+    "district_name": "Kab. Bengkalis",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "090400",
+    "district_name": "Kab. Indragiri Hulu",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "090500",
+    "district_name": "Kab. Indragiri Hilir",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "090800",
+    "district_name": "Kab. Pelalawan",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "090900",
+    "district_name": "Kab. Rokan Hilir",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "091000",
+    "district_name": "Kab. Siak",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "091100",
+    "district_name": "Kab. Kuantan Singingi",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "091400",
+    "district_name": "Kab. Rokan Hulu",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "091500",
+    "district_name": "Kab. Kepulauan Meranti",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "096000",
+    "district_name": "Kota Pekanbaru",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "096200",
+    "district_name": "Kota Dumai",
+    "province_id": "090000"
+  },
+  {
+    "district_id": "100100",
+    "district_name": "Kab. Batang Hari",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100200",
+    "district_name": "Kab. Bungo",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100300",
+    "district_name": "Kab. Sarolangun",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100400",
+    "district_name": "Kab. Tanjung Jabung Barat",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100500",
+    "district_name": "Kab. Kerinci",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100600",
+    "district_name": "Kab. Tebo",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100700",
+    "district_name": "Kab. Muaro Jambi",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100800",
+    "district_name": "Kab. Tanjung Jabung Timur",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "100900",
+    "district_name": "Kab. Merangin",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "106000",
+    "district_name": "Kota Jambi",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "106100",
+    "district_name": "Kab. Sungai Penuh",
+    "province_id": "100000"
+  },
+  {
+    "district_id": "110100",
+    "district_name": "Kab. Musi Banyu Asin",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110200",
+    "district_name": "Kab. Ogan Komering Ilir",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110300",
+    "district_name": "Kab. Ogan Komering Ulu",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110400",
+    "district_name": "Kab. Muara Enim",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110500",
+    "district_name": "Kab. Lahat",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110600",
+    "district_name": "Kab. Musi Rawas",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110700",
+    "district_name": "Kab. Banyuasin",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110800",
+    "district_name": "Kab. Ogan Komering Ulu Timur",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "110900",
+    "district_name": "Kab. Ogan Komering Ulu Selatan",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "111000",
+    "district_name": "Kab. Ogan Ilir",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "111100",
+    "district_name": "Kab. Empat Lawang",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "111200",
+    "district_name": "Kab. Penukal Abab Lematang Ilir",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "111300",
+    "district_name": "Kab. Musi Rawas Utara",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "116000",
+    "district_name": "Kota Palembang",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "116100",
+    "district_name": "Kota Prabumulih",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "116200",
+    "district_name": "Kota Lubuk Linggau",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "116300",
+    "district_name": "Kota Pagar Alam",
+    "province_id": "110000"
+  },
+  {
+    "district_id": "120100",
+    "district_name": "Kab. Lampung Selatan",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120200",
+    "district_name": "Kab. Lampung Tengah",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120300",
+    "district_name": "Kab. Lampung Utara",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120400",
+    "district_name": "Kab. Lampung Barat",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120500",
+    "district_name": "Kab. Tulang Bawang",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120600",
+    "district_name": "Kab. Tenggamus",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120700",
+    "district_name": "Kab. Lampung Timur",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120800",
+    "district_name": "Kab. Way Kanan",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "120900",
+    "district_name": "Kab. Pasawaran",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "121000",
+    "district_name": "Kab. Tulang Bawang Barat",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "121100",
+    "district_name": "Kab. Mesuji",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "121200",
+    "district_name": "Kab. Pringsewu",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "121300",
+    "district_name": "Kab. Pesisir Barat",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "126000",
+    "district_name": "Kota Bandar Lampung",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "126100",
+    "district_name": "Kota Metro",
+    "province_id": "120000"
+  },
+  {
+    "district_id": "130100",
+    "district_name": "Kab. Sambas",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130200",
+    "district_name": "Kab. Pontianak",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130300",
+    "district_name": "Kab. Sanggau",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130400",
+    "district_name": "Kab. Sintang",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130500",
+    "district_name": "Kab. Kapuas Hulu",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130600",
+    "district_name": "Kab. Ketapang",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130800",
+    "district_name": "Kab. Bengkayang",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "130900",
+    "district_name": "Kab. Landak",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "131000",
+    "district_name": "Kab. Sekadau",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "131100",
+    "district_name": "Kab. Melawi",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "131200",
+    "district_name": "Kab. Kayong Utara",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "131300",
+    "district_name": "Kab. Kuburaya",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "136000",
+    "district_name": "Kota Pontianak",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "136100",
+    "district_name": "Kota Singkawang",
+    "province_id": "130000"
+  },
+  {
+    "district_id": "140100",
+    "district_name": "Kab. Kapuas",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140200",
+    "district_name": "Kab. Barito Selatan",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140300",
+    "district_name": "Kab. Barito Utara",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140400",
+    "district_name": "Kab. Kotawaringin Timur",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140500",
+    "district_name": "Kab. Kotawaringin Barat",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140600",
+    "district_name": "Kab. Katingan",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140700",
+    "district_name": "Kab. Seruyan",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140800",
+    "district_name": "Kab. Sukamara",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "140900",
+    "district_name": "Kab. Lamandau",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "141000",
+    "district_name": "Kab. Gunung Mas",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "141100",
+    "district_name": "Kab. Pulang Pisau",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "141200",
+    "district_name": "Kab. Murung Raya",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "141300",
+    "district_name": "Kab. Barito Timur",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "146000",
+    "district_name": "Kota Palangka Raya",
+    "province_id": "140000"
+  },
+  {
+    "district_id": "150100",
+    "district_name": "Kab. Banjar",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150200",
+    "district_name": "Kab. Tanah Laut",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150300",
+    "district_name": "Kab. Barito Kuala",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150400",
+    "district_name": "Kab. Tapin",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150500",
+    "district_name": "Kab. Hulu Sungai Selatan",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150600",
+    "district_name": "Kab. Hulu Sungai Tengah",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150700",
+    "district_name": "Kab. Hulu Sungai Utara",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150800",
+    "district_name": "Kab. Tabalong",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "150900",
+    "district_name": "Kab. Kota Baru",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "151000",
+    "district_name": "Kab. Balangan",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "151100",
+    "district_name": "Kab. Tanah Bumbu",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "156000",
+    "district_name": "Kota Banjarmasin",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "156100",
+    "district_name": "Kota Banjarbaru",
+    "province_id": "150000"
+  },
+  {
+    "district_id": "160100",
+    "district_name": "Kab. Pasir",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "160200",
+    "district_name": "Kab. Kutai Kartanegara",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "160300",
+    "district_name": "Kab. Berau",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "160900",
+    "district_name": "Kab. Kutai Barat",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "161000",
+    "district_name": "Kab. Kutai Timur",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "161100",
+    "district_name": "Kab. Penajam Paser Utara",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "161200",
+    "district_name": "Kab. Mahakam Ulu",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "166000",
+    "district_name": "Kota Samarinda",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "166100",
+    "district_name": "Kota Balikpapan",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "166300",
+    "district_name": "Kota Bontang",
+    "province_id": "160000"
+  },
+  {
+    "district_id": "170100",
+    "district_name": "Kab. Bolaang Mongondaw",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170200",
+    "district_name": "Kab. Minahasa",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170300",
+    "district_name": "Kab. Kep. Sangihe",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170400",
+    "district_name": "Kab. Kepulauan Talaud",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170500",
+    "district_name": "Kab. Minahasa Selatan",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170600",
+    "district_name": "Kab. Minahasa Utara",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170800",
+    "district_name": "Kab. Bolaang Mongondow Utara",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "170900",
+    "district_name": "Kab. Kepulauan Sitaro",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "171000",
+    "district_name": "Kab. Minahasa Tenggara",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "171100",
+    "district_name": "Kab. Bolaang Mongondaw Timur",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "171200",
+    "district_name": "Kab. Bolaang Mongondaw Selatan",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "176000",
+    "district_name": "Kota Manado",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "176100",
+    "district_name": "Kota Bitung",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "176200",
+    "district_name": "Kota Tomohon",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "176300",
+    "district_name": "Kota. Kotamobagu",
+    "province_id": "170000"
+  },
+  {
+    "district_id": "180100",
+    "district_name": "Kab. Banggai Kepulauan",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180200",
+    "district_name": "Kab. Donggala",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180300",
+    "district_name": "Kab. Parigi Mautong",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180400",
+    "district_name": "Kab. Banggai",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180500",
+    "district_name": "Kab. Buol",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180600",
+    "district_name": "Kab. Toli-Toli",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180700",
+    "district_name": "Kab. Marowali",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180800",
+    "district_name": "Kab. Poso",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "180900",
+    "district_name": "Kab. Tojo Una-Una",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "181000",
+    "district_name": "Kab. Sigi",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "181100",
+    "district_name": "Kab. Banggai Laut",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "181200",
+    "district_name": "Kab. Morowali Utara",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "186000",
+    "district_name": "Kota Palu",
+    "province_id": "180000"
+  },
+  {
+    "district_id": "190100",
+    "district_name": "Kab. Maros",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190200",
+    "district_name": "Kab. Pangkajene Kepulauan",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190300",
+    "district_name": "Kab. Gowa",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190400",
+    "district_name": "Kab. Takalar",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190500",
+    "district_name": "Kab. Jeneponto",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190600",
+    "district_name": "Kab. Barru",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190700",
+    "district_name": "Kab. Bone",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190800",
+    "district_name": "Kab. Wajo",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "190900",
+    "district_name": "Kab. Soppeng",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191000",
+    "district_name": "Kab. Bantaeng",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191100",
+    "district_name": "Kab. Bulukumba",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191200",
+    "district_name": "Kab. Sinjai",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191300",
+    "district_name": "Kab. Selayar",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191400",
+    "district_name": "Kab. Pinrang",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191500",
+    "district_name": "Kab. Sidenreng Rappang",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191600",
+    "district_name": "Kab. Enrekang",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191700",
+    "district_name": "Kab. Luwu",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "191800",
+    "district_name": "Kab. Tana Toraja",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "192400",
+    "district_name": "Kab. Luwu Utara",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "192600",
+    "district_name": "Kab. Luwu Timur",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "192700",
+    "district_name": "Kab. Toraja Utara",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "196000",
+    "district_name": "Kota Makassar",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "196100",
+    "district_name": "Kota Pare-Pare",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "196200",
+    "district_name": "Kota Palopo",
+    "province_id": "190000"
+  },
+  {
+    "district_id": "200100",
+    "district_name": "Kab. Konawe",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200200",
+    "district_name": "Kab. Muna",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200300",
+    "district_name": "Kab. Buton",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200400",
+    "district_name": "Kab. Kolaka",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200500",
+    "district_name": "Kab. Konawe Selatan",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200600",
+    "district_name": "Kab. Wakatobi",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200700",
+    "district_name": "Kab. Bombana",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200800",
+    "district_name": "Kab. Kolaka Utara",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "200900",
+    "district_name": "Kab. Konawe Utara",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201000",
+    "district_name": "Kab. Buton Utara",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201100",
+    "district_name": "Kab. Kolaka Timur",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201200",
+    "district_name": "Kab. Konawe Kepulauan",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201300",
+    "district_name": "Kab. Muna Barat",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201400",
+    "district_name": "Kab. Buton Selatan",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "201600",
+    "district_name": "Kab. Buton Tengah",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "206000",
+    "district_name": "Kota Kendari",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "206100",
+    "district_name": "Kota Baubau",
+    "province_id": "200000"
+  },
+  {
+    "district_id": "210100",
+    "district_name": "Kab. Maluku Tengah",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210200",
+    "district_name": "Kab. Maluku Tenggara",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210300",
+    "district_name": "Kab. Buru",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210400",
+    "district_name": "Kab. Maluku Tenggara Barat",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210500",
+    "district_name": "Kab. Seram Bagian Barat",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210600",
+    "district_name": "Kab. Seram Bagian Timur",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210700",
+    "district_name": "Kab. Kepulauan Aru",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210800",
+    "district_name": "Kab. Maluku Barat Daya",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "210900",
+    "district_name": "Kab. Buru Selatan",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "216000",
+    "district_name": "Kota Ambon",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "216100",
+    "district_name": "Kota. Tual",
+    "province_id": "210000"
+  },
+  {
+    "district_id": "220100",
+    "district_name": "Kab. Buleleng",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220200",
+    "district_name": "Kab. Jembrana",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220300",
+    "district_name": "Kab. Tabanan",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220400",
+    "district_name": "Kab. Badung",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220500",
+    "district_name": "Kab. Gianyar",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220600",
+    "district_name": "Kab. Klungkung",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220700",
+    "district_name": "Kab. Bangli",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "220800",
+    "district_name": "Kab. Karang Asem",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "226000",
+    "district_name": "Kota Denpasar",
+    "province_id": "220000"
+  },
+  {
+    "district_id": "230100",
+    "district_name": "Kab. Lombok Barat",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230200",
+    "district_name": "Kab. Lombok Tengah",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230300",
+    "district_name": "Kab. Lombok Timur",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230400",
+    "district_name": "Kab. Sumbawa",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230500",
+    "district_name": "Kab. Dompu",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230600",
+    "district_name": "Kab. Bima",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230700",
+    "district_name": "Kab. Sumbawa Barat",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "230800",
+    "district_name": "Kab. Lombok Utara",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "236000",
+    "district_name": "Kota Mataram",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "236100",
+    "district_name": "Kota Bima",
+    "province_id": "230000"
+  },
+  {
+    "district_id": "240100",
+    "district_name": "Kab. Kupang",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240300",
+    "district_name": "Kab. Timor Tengah Selatan",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240400",
+    "district_name": "Kab. Timor Tengah Utara",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240500",
+    "district_name": "Kab. Belu",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240600",
+    "district_name": "Kab. Alor",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240700",
+    "district_name": "Kab. Flores Timur",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240800",
+    "district_name": "Kab. Sikka",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "240900",
+    "district_name": "Kab. Ende",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241000",
+    "district_name": "Kab. Ngada",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241100",
+    "district_name": "Kab. Manggarai",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241200",
+    "district_name": "Kab. Sumba Timur",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241300",
+    "district_name": "Kab. Sumba Barat",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241400",
+    "district_name": "Kab. Lembata",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241500",
+    "district_name": "Kab. Rote-Ndao",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241600",
+    "district_name": "Kab. Manggarai Barat",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241700",
+    "district_name": "Kab. Nagakeo",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241800",
+    "district_name": "Kab. Sumba Tengah",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "241900",
+    "district_name": "Kab. Sumba Barat Daya",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "242000",
+    "district_name": "Kab. Manggarai Timur",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "242100",
+    "district_name": "Kab. Sabu Raijua",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "242200",
+    "district_name": "Kab. Malaka",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "246000",
+    "district_name": "Kota Kupang",
+    "province_id": "240000"
+  },
+  {
+    "district_id": "250100",
+    "district_name": "Kab. Jayapura",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "250200",
+    "district_name": "Kab. Biak Numfor",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "250300",
+    "district_name": "Kab. Yapen Waropen",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "250700",
+    "district_name": "Kab. Merauke",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "250800",
+    "district_name": "Kab. Jayawijaya",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "250900",
+    "district_name": "Kab. Nabire",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251000",
+    "district_name": "Kab. Paniai",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251100",
+    "district_name": "Kab. Puncak Jaya",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251200",
+    "district_name": "Kab. Mimika",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251300",
+    "district_name": "Kab. Boven Digoel",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251400",
+    "district_name": "Kab. Mappi",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251500",
+    "district_name": "Kab. Asmat",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251600",
+    "district_name": "Kab. Yahukimo",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251700",
+    "district_name": "Kab. Pegunungan Bintang",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251800",
+    "district_name": "Kab. Tolikara",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "251900",
+    "district_name": "Kab. Sarmi",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "252000",
+    "district_name": "Kab. Keerom",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "252600",
+    "district_name": "Kab. Waropen",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "252700",
+    "district_name": "Kab. Supiori",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "252800",
+    "district_name": "Kab. Memberamo Raya",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "252900",
+    "district_name": "Kab. Nduga",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253000",
+    "district_name": "Kab. Lanny Jaya",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253100",
+    "district_name": "Kab. Membramo Tengah",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253200",
+    "district_name": "Kab. Yalimo",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253300",
+    "district_name": "kab. Puncak",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253400",
+    "district_name": "Kab. Dogiyai",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253500",
+    "district_name": "Kab. Deiyai",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "253600",
+    "district_name": "Kab. Intan Jaya",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "256000",
+    "district_name": "Kota Jayapura",
+    "province_id": "250000"
+  },
+  {
+    "district_id": "260100",
+    "district_name": "Kab. Bengkulu Utara",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260200",
+    "district_name": "Kab. Rejang Lebong",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260300",
+    "district_name": "Kab. Bengkulu Selatan",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260400",
+    "district_name": "Kab. Muko-muko",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260500",
+    "district_name": "Kab. Kepahiang",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260600",
+    "district_name": "Kab. Lebong",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260700",
+    "district_name": "Kab. Kaur",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260800",
+    "district_name": "Kab. Seluma",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "260900",
+    "district_name": "Kab. Bengkulu Tengah",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "266000",
+    "district_name": "Kota Bengkulu",
+    "province_id": "260000"
+  },
+  {
+    "district_id": "270100",
+    "district_name": "Kab. Pulau Taliabu",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270200",
+    "district_name": "Kab. Halmahera Tengah",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270300",
+    "district_name": "Kab. Halmahera Barat",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270400",
+    "district_name": "Kab. halmahera Utara",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270500",
+    "district_name": "Kab. Halmahera Selatan",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270600",
+    "district_name": "Kab. Halmahera Timur",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270700",
+    "district_name": "Kab. Kepulauan Sula",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "270800",
+    "district_name": "Kab. Kepulauan Morotai",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "276000",
+    "district_name": "Kota Ternate",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "276100",
+    "district_name": "Kota Tidore Kepulauan",
+    "province_id": "270000"
+  },
+  {
+    "district_id": "280100",
+    "district_name": "Kab. Pandeglang",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "280200",
+    "district_name": "Kab. Lebak",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "280300",
+    "district_name": "Kab. Tangerang",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "280400",
+    "district_name": "Kab. Serang",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "286000",
+    "district_name": "Kota Cilegon",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "286100",
+    "district_name": "Kota Tangerang",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "286200",
+    "district_name": "Kota Serang",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "286300",
+    "district_name": "Kota tangerang Selatan",
+    "province_id": "280000"
+  },
+  {
+    "district_id": "290100",
+    "district_name": "Kab. Bangka",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "290200",
+    "district_name": "Kab. Belitung",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "290300",
+    "district_name": "Kab. Bangka Tengah",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "290400",
+    "district_name": "Kab. Bangka Barat",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "290500",
+    "district_name": "Kab. Bangka Selatan",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "290600",
+    "district_name": "Kab. Belitung Timur",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "296000",
+    "district_name": "Kota Pangkalpinang",
+    "province_id": "290000"
+  },
+  {
+    "district_id": "300100",
+    "district_name": "Kab. Boalemo",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "300200",
+    "district_name": "Kab. Gorontalo",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "300300",
+    "district_name": "Kab. Pohuwato",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "300400",
+    "district_name": "Kab. Bone Bolango",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "300500",
+    "district_name": "Kab. Gorontalo Utara",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "306000",
+    "district_name": "Kota Gorontalo",
+    "province_id": "300000"
+  },
+  {
+    "district_id": "310100",
+    "district_name": "Kab. Bintan",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "310200",
+    "district_name": "Kab. Karimun",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "310300",
+    "district_name": "Kab. Natuna",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "310400",
+    "district_name": "Kab. Lingga",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "310500",
+    "district_name": "Kab. Kepulauan Anambas",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "316000",
+    "district_name": "Kota Batam",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "316100",
+    "district_name": "Kota Tanjungpinang",
+    "province_id": "310000"
+  },
+  {
+    "district_id": "320100",
+    "district_name": "Kab. Fak-Fak",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320200",
+    "district_name": "Kab. Kaimana",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320300",
+    "district_name": "Kab. Teluk Wondama",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320400",
+    "district_name": "Kab. Teluk Bintuni",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320500",
+    "district_name": "Kab. Manokwari",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320600",
+    "district_name": "Kab. Sorong Selatan",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320700",
+    "district_name": "Kab. Sorong",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320800",
+    "district_name": "Kab. Raja Ampat",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "320900",
+    "district_name": "Kab. Tambrauw",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "321000",
+    "district_name": "Kab. Maybrat",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "321100",
+    "district_name": "Kab. Pegunungan Arfak",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "321200",
+    "district_name": "Kab. Manokwari Selatan",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "326000",
+    "district_name": "Kota Sorong",
+    "province_id": "320000"
+  },
+  {
+    "district_id": "330100",
+    "district_name": "Kab. Mamuju",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "330200",
+    "district_name": "Kab. Mamuju Utara",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "330300",
+    "district_name": "Kab. Polewali Mamasa",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "330400",
+    "district_name": "Kab. Mamasa",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "330500",
+    "district_name": "Kab. Majene",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "330600",
+    "district_name": "Kab. Mamuju Tengah",
+    "province_id": "330000"
+  },
+  {
+    "district_id": "340100",
+    "district_name": "Kab. Malinau",
+    "province_id": "340000"
+  },
+  {
+    "district_id": "340200",
+    "district_name": "Kab. Bulungan",
+    "province_id": "340000"
+  },
+  {
+    "district_id": "340300",
+    "district_name": "Kab. Tana Tidung",
+    "province_id": "340000"
+  },
+  {
+    "district_id": "340500",
+    "district_name": "Kab. Nunukan",
+    "province_id": "340000"
+  },
+  {
+    "district_id": "346000",
+    "district_name": "Kota Tarakan",
+    "province_id": "340000"
+  }
+]

@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+    font-family: var(--font-jakarta);
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-error {
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+    display: none;
+}

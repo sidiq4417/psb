@@ -1,0 +1,172 @@
+[
+  {
+    "province_id": "010000",
+    "province_name": "Prov. D.K.I. Jakarta",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "020000",
+    "province_name": "Prov. Jawa Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "030000",
+    "province_name": "Prov. Jawa Tengah",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "040000",
+    "province_name": "Prov. D.I. Yogyakarta",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "050000",
+    "province_name": "Prov. Jawa Timur",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "060000",
+    "province_name": "Prov. Aceh",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "070000",
+    "province_name": "Prov. Sumatera Utara",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "080000",
+    "province_name": "Prov. Sumatera Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "090000",
+    "province_name": "Prov. Riau",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "100000",
+    "province_name": "Prov. Jambi",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "110000",
+    "province_name": "Prov. Sumatera Selatan",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "120000",
+    "province_name": "Prov. Lampung",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "130000",
+    "province_name": "Prov. Kalimantan Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "140000",
+    "province_name": "Prov. Kalimantan Tengah",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "150000",
+    "province_name": "Prov. Kalimantan Selatan",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "160000",
+    "province_name": "Prov. Kalimantan Timur",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "170000",
+    "province_name": "Prov. Sulawesi Utara",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "180000",
+    "province_name": "Prov. Sulawesi Tengah",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "190000",
+    "province_name": "Prov. Sulawesi Selatan",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "200000",
+    "province_name": "Prov. Sulawesi Tenggara",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "210000",
+    "province_name": "Prov. Maluku",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "220000",
+    "province_name": "Prov. Bali",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "230000",
+    "province_name": "Prov. Nusa Tenggara Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "240000",
+    "province_name": "Prov. Nusa Tenggara Timur",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "250000",
+    "province_name": "Prov. Papua",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "260000",
+    "province_name": "Prov. Bengkulu",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "270000",
+    "province_name": "Prov. Maluku Utara",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "280000",
+    "province_name": "Prov. Banten",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "290000",
+    "province_name": "Prov. Bangka Belitung",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "300000",
+    "province_name": "Prov. Gorontalo",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "310000",
+    "province_name": "Prov. Kepulauan Riau",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "320000",
+    "province_name": "Prov. Papua Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "330000",
+    "province_name": "Prov. Sulawesi Barat",
+    "country_id": "ID"
+  },
+  {
+    "province_id": "340000",
+    "province_name": "Prov. Kalimantan Utara",
+    "country_id": "ID"
+  }
+]

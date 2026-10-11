@@ -1,0 +1,46 @@
+SEKOLAHKU SOFTWARE LICENSE
+
+Lisensi ini berlaku untuk aplikasi SPMB (Sistem Penerimaan Murid Baru).
+
+Copyright (c) 2026 Anton Sofyan
+Owner of sekolahku.web.id
+
+Software ini didistribusikan GRATIS. Dengan menerima salinan software ini,
+Anda diizinkan untuk menggunakan, menyalin, memodifikasi, dan mendistribusikan
+software beserta dokumentasinya, dengan ketentuan sebagai berikut:
+
+1. PENGGUNAAN BEBAS
+   Software ini boleh digunakan, dimodifikasi, disalin, dan didistribusikan
+   secara bebas, termasuk untuk operasional internal organisasi mana pun,
+   baik komersial maupun non-komersial.
+
+2. DILARANG MENGOMERSIALKAN SOFTWARE
+   DILARANG menjual, menjual ulang, melisensikan dengan biaya, atau memungut
+   biaya dalam bentuk apa pun atas software ini atau versi modifikasinya.
+   Tidak diizinkan memungut biaya atas hak orang lain untuk menggunakan
+   software ini.
+
+3. JASA DIPERBOLEHKAN
+   DIPERBOLEHKAN memungut biaya atas jasa yang terkait dengan software ini,
+   termasuk namun tidak terbatas pada: instalasi, setup, konfigurasi,
+   hosting, pemeliharaan, pelatihan, dan dukungan teknis.
+
+4. ATRIBUSI
+   Semua salinan atau bagian substansial dari software ini harus
+   mempertahankan notice copyright dan teks lisensi ini.
+
+5. TANPA JAMINAN
+   Software ini disediakan "SEBAGAIMANA ADANYA" tanpa jaminan dalam bentuk
+   apa pun, baik tersurat maupun tersirat, termasuk namun tidak terbatas pada
+   jaminan kelayakan dagang dan kesesuaian untuk tujuan tertentu. Penulis
+   tidak bertanggung jawab atas klaim, kerugian, atau tanggung jawab lainnya,
+   baik karena perjanjian, perbuatan melawan hukum, atau lainnya, yang timbul
+   dari, akibat, atau sehubungan dengan software ini atau pemakaian atau
+   perlakuan lain atas software ini.
+
+6. KOMPONEN PIHAK KETIGA
+   Proyek ini menggunakan CodeIgniter 4 yang didistribusikan di bawah MIT
+   License (Copyright (c) 2014-2019 British Columbia Institute of Technology,
+   Copyright (c) 2019-present CodeIgniter Foundation). Lisensi MIT pada
+   komponen tersebut dipertahankan dan berlaku untuk komponen yang
+   bersangkutan.

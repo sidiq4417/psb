@@ -1,0 +1,22 @@
+Example Database
+ [x] Model find all
+ [x] Soft delete leaves row
+
+Example Session
+ [x] Session simple
+
+Health
+ [x] Is defined app path
+ [x] Base url has been set
+
+Migration Smoke
+ [x] Application settings table exists
+ [x] Admission offerings table queries
+ [x] Admission periods table queries
+ [x] Registration tables exist
+ [x] Submitted boolean returns integer
+ [x] Registration model find by student id
+ [x] Registration model find by admission offering id
+ [x] Registrations table has expected columns
+ [x] Core tables exist
+
