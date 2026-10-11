@@ -15,6 +15,7 @@
     $favicon_path = ($favicon === 'favicon.ico') ? base_url('favicon.ico') : base_url('upload/' . $favicon);
     ?>
     <link rel="icon" type="image/x-icon" href="<?= $favicon_path ?>">
+    <?= csrf_meta() ?>
     <title>Admission System | <?= session()->get('institution_name') ?? '' ?></title>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css" rel="stylesheet">

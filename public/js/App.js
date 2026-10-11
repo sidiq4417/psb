@@ -26,8 +26,88 @@ H.StrToObject = (str) => {
         throw ('cannot parse non-json-string')
     }
     if (str === '') return str;
-    return eval('(' + str + ')');
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.error('H.StrToObject: invalid JSON', e);
+        return null;
+    }
 };
+
+/**
+ * Escape a value for safe insertion into HTML markup or attributes.
+ * @param {*} value - Any value; null/undefined become an empty string.
+ * @returns {string}
+ */
+H.Esc = (value) => {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
+
+/**
+ * Read the CSRF token rendered by csrf_meta() in the page head.
+ * @returns {string|null}
+ */
+H.CsrfToken = () => {
+    const meta = document.querySelector('meta[name="X-CSRF-TOKEN"]');
+    return meta ? meta.getAttribute('content') : null;
+};
+
+/*
+ * Attach the CSRF token to every same-origin, state-changing request made with
+ * fetch() or XMLHttpRequest, so individual views do not have to remember it.
+ */
+(() => {
+    const SAFE = ['GET', 'HEAD', 'OPTIONS'];
+    const sameOrigin = (url) => {
+        try {
+            return new URL(url, window.location.href).origin === window.location.origin;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    if (window.fetch && !window.fetch.__csrf) {
+        const nativeFetch = window.fetch.bind(window);
+        const patched = (input, init = {}) => {
+            const url = input instanceof Request ? input.url : String(input);
+            const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+            const token = H.CsrfToken();
+            if (token && !SAFE.includes(method) && sameOrigin(url)) {
+                const headers = new Headers((init && init.headers) || (input instanceof Request ? input.headers : undefined));
+                if (!headers.has('X-CSRF-TOKEN')) headers.set('X-CSRF-TOKEN', token);
+                if (!headers.has('X-Requested-With')) headers.set('X-Requested-With', 'XMLHttpRequest');
+                init = Object.assign({}, init, {headers});
+            }
+            return nativeFetch(input, init);
+        };
+        patched.__csrf = true;
+        window.fetch = patched;
+    }
+
+    if (window.XMLHttpRequest && !XMLHttpRequest.prototype.__csrf) {
+        const open = XMLHttpRequest.prototype.open;
+        const send = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function (method, url) {
+            this.__csrfMethod = String(method || 'GET').toUpperCase();
+            this.__csrfUrl = url;
+            return open.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function () {
+            const token = H.CsrfToken();
+            if (token && !SAFE.includes(this.__csrfMethod) && sameOrigin(this.__csrfUrl)) {
+                try { this.setRequestHeader('X-CSRF-TOKEN', token); } catch (e) { /* already sent */ }
+            }
+            return send.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.__csrf = true;
+    }
+})();
 
 H.Currency = (number, prefix = "", sep = " ") => {
     let numStr = number.toString();
