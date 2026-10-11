@@ -110,37 +110,24 @@
         <div class="absolute inset-0 bg-gradient-to-b from-brand-dark/40 to-brand-dark opacity-95"></div>
         
         <div class="relative max-w-4xl mx-auto text-center z-10">
-            <!-- Banner Pemberitahuan Belum Buka & Hitung Mundur -->
-            <div class="bg-amber-500/15 backdrop-blur-md border border-amber-500/40 text-left p-4 sm:p-6 rounded-2xl shadow-2xl mb-10 max-w-3xl mx-auto relative overflow-hidden">
-                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
+            <!-- Banner Pendaftaran Dibuka -->
+            <div class="bg-emerald-500/15 backdrop-blur-md border border-emerald-400/40 text-left p-4 sm:p-6 rounded-2xl shadow-2xl mb-10 max-w-3xl mx-auto relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-400"></div>
                 <div class="flex items-start gap-4">
-                    <div class="bg-amber-500/20 p-2.5 rounded-full flex-shrink-0 mt-0.5">
-                        <svg class="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <div class="bg-emerald-400/20 p-2.5 rounded-full flex-shrink-0 mt-0.5">
+                        <svg class="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div class="flex-1">
-                        <p class="font-bold text-base sm:text-lg text-white tracking-wide mb-1">Pendaftaran Belum Dibuka</p>
-                        <p class="text-sm sm:text-base text-gray-200 leading-relaxed mb-4">
-                            Mohon maaf, pendaftaran santri baru Tahun Ajaran 2027-2028 belum dibuka. Pendaftaran baru akan resmi dibuka pada <strong>12 Oktober 2026</strong>. Anda dapat mempelajari seluruh informasi persyaratan di bawah ini.
+                        <p class="font-bold text-base sm:text-lg text-white tracking-wide mb-1 flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span></span>
+                            Pendaftaran Sudah Dibuka!
                         </p>
-
-                        <!-- Countdown Timer Grid -->
-                        <div class="grid grid-cols-4 gap-2 sm:gap-4 pt-2 border-t border-amber-500/30 text-center">
-                            <div class="bg-black/30 backdrop-blur-sm p-2 rounded-xl">
-                                <div id="days" class="text-xl sm:text-2xl font-black text-amber-300">00</div>
-                                <div class="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Hari</div>
-                            </div>
-                            <div class="bg-black/30 backdrop-blur-sm p-2 rounded-xl">
-                                <div id="hours" class="text-xl sm:text-2xl font-black text-amber-300">00</div>
-                                <div class="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Jam</div>
-                            </div>
-                            <div class="bg-black/30 backdrop-blur-sm p-2 rounded-xl">
-                                <div id="minutes" class="text-xl sm:text-2xl font-black text-amber-300">00</div>
-                                <div class="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Menit</div>
-                            </div>
-                            <div class="bg-black/30 backdrop-blur-sm p-2 rounded-xl">
-                                <div id="seconds" class="text-xl sm:text-2xl font-black text-amber-300">00</div>
-                                <div class="text-[10px] sm:text-xs text-gray-300 uppercase tracking-wider">Detik</div>
-                            </div>
+                        <p class="text-sm sm:text-base text-gray-200 leading-relaxed mb-4">
+                            Pendaftaran santri baru Tahun Ajaran 2027-2028 telah resmi dibuka sejak <strong>12 Oktober 2026</strong> dan akan ditutup apabila kuota terpenuhi. Segera daftarkan putra-putri Anda secara online melalui SIAKAD PPTQ Al Fath.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-emerald-400/30">
+                            <a href="https://siakad.alfathsolobaru.com/psb/register" class="bg-accent-main hover:bg-accent-hover text-brand-dark font-bold py-2.5 px-6 rounded-full text-sm text-center transition-all">Daftar Online Sekarang</a>
+                            <a href="https://siakad.alfathsolobaru.com/psb" class="border border-white/60 text-white hover:bg-white/10 font-semibold py-2.5 px-6 rounded-full text-sm text-center transition-all">Sudah punya akun? Masuk</a>
                         </div>
                     </div>
                 </div>
@@ -270,9 +257,9 @@
                     <div class="flex flex-col sm:flex-row gap-5 md:gap-8 items-start group">
                         <div class="bg-white border-[4px] border-brand-primary text-brand-primary font-bold w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-xl md:text-2xl flex-shrink-0 shadow-sm group-hover:bg-brand-primary group-hover:text-white transition-all duration-300">01</div>
                         <div class="bg-brand-pale p-6 md:p-8 rounded-3xl shadow-sm border border-brand-light flex-1 w-full group-hover:shadow-md transition-shadow relative overflow-hidden">
-                            <div class="absolute top-0 right-0 bg-brand-primary text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl">Mulai 12 Okt - Kuota Terpenuhi</div>
+                            <div class="absolute top-0 right-0 bg-brand-primary text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl">Dibuka 12 Okt 2026 - Kuota Terpenuhi</div>
                             <h4 class="font-extrabold text-xl md:text-2xl text-brand-dark mb-3 mt-2">Pendaftaran & Input Data</h4>
-                            <p class="text-gray-700 text-base md:text-lg leading-relaxed">Calon siswa melakukan pendaftaran dan input data dengan cara datang ke PPTQ Al-FATH Solo Baru di jam kerja (Senin - Kamis pukul 09.00-15.00). <br><span class="font-semibold text-red-600 mt-2 block">(Pendaftaran ditutup apabila kuota pendaftaran terpenuhi)</span></p>
+                            <p class="text-gray-700 text-base md:text-lg leading-relaxed">Calon siswa melakukan pendaftaran dan input data secara online melalui <a href="https://siakad.alfathsolobaru.com/psb/register" class="font-semibold text-brand-primary underline hover:text-brand-dark">SIAKAD PPTQ Al Fath</a>, atau datang langsung ke PPTQ Al-FATH Solo Baru di jam kerja (Senin - Kamis pukul 09.00-15.00). <br><span class="font-semibold text-red-600 mt-2 block">(Pendaftaran ditutup apabila kuota pendaftaran terpenuhi)</span></p>
                         </div>
                     </div>
                     
@@ -481,32 +468,6 @@
 
         btn.addEventListener('click', toggleMenu);
         mobileLinks.forEach(link => link.addEventListener('click', toggleMenu));
-
-        // Countdown Timer to October 12, 2026 00:00:00
-        const countDownDate = new Date("Oct 12, 2026 00:00:00").getTime();
-
-        const x = setInterval(function() {
-            const now = new Date().getTime();
-            const distance = countDownDate - now;
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("days").innerText = String(days).padStart(2, '0');
-            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
-            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
-            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
-
-            if (distance < 0) {
-                clearInterval(x);
-                document.getElementById("days").innerText = "00";
-                document.getElementById("hours").innerText = "00";
-                document.getElementById("minutes").innerText = "00";
-                document.getElementById("seconds").innerText = "00";
-            }
-        }, 1000);
     </script>
 </body>
 </html>
