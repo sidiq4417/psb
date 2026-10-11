@@ -170,13 +170,13 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="telephone" type="text" class="form-control" name="telephone" value="<?= esc((string) ($row->telephone ?? ''), 'attr') ?>" placeholder="Telepon">
-                        <label for="telephone">Telepon Kantor</label>
+                        <label for="telephone">Telepon Kantor (opsional)</label>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input id="mobile_phone" type="text" class="form-control" name="mobile_phone" value="<?= esc((string) ($row->mobile_phone ?? ''), 'attr') ?>" placeholder="Handphone">
-                        <label for="mobile_phone">Handphone / WhatsApp</label>
+                        <label for="mobile_phone">Handphone / WhatsApp (opsional)</label>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -393,12 +393,12 @@
     document.addEventListener("DOMContentLoaded", () => {
         const submitBtn = document.querySelector('[name="submit"]');
         const requiredInputs = [
-            "institution_name", "address", "telephone", "mobile_phone",
-            "email", "timezone"
+            "institution_name", "address", "email", "timezone"
         ].map(name => document.querySelector(`[name="${name}"]`));
 
+        // Telephone and mobile phone are optional (empty after a fresh install); the server checks their format.
         const optionalInputs = [
-            "tagline",
+            "tagline", "telephone", "mobile_phone",
             "smtp_host", "smtp_user", "smtp_pass", "smtp_port",
             "turnstile_site_key", "turnstile_secret_key",
             "clear_smtp_pass", "clear_turnstile_secret_key",
@@ -409,7 +409,7 @@
 
         submitBtn.addEventListener("click", async () => {
             if (requiredInputs.some(input => input && !input.value.trim())) {
-                return showAlert("Semua kolom profil wajib diisi!", "alert-danger");
+                return showAlert("Nama instansi, alamat, email, dan zona waktu wajib diisi!", "alert-danger");
             }
 
             submitBtn.disabled = true;

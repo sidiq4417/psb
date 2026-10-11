@@ -407,7 +407,7 @@
                             if (data.address_province_id) await renderDistricts(data.address_province_id);
                             if (data.address_district_id) await renderSubdistricts(data.address_district_id);
                         } else {
-                            countrySelect.value = "99";
+                            countrySelect.value = data.address_country_id || "99";
                             provinceSelect.innerHTML = '<option value="99">Lainnya</option>';
                             districtSelect.innerHTML = '<option value="99">Lainnya</option>';
                             document.querySelector('[name="address_subdistrict_id"]').innerHTML = '<option value="99">Lainnya</option>';

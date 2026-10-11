@@ -88,7 +88,12 @@ class AcademicYearController extends BaseController
     public function save(): ResponseInterface
     {
         $rules = [
-            'name' => ['label' => 'Tahun Ajaran', 'rules' => 'required|max_length[20]'],
+            // The admission year is taken from the first four characters of the name (LEFT(name, 4)).
+            'name' => [
+                'label' => 'Tahun Ajaran',
+                'rules' => ['required', 'max_length[20]', 'regex_match[/^\s*\d{4}\/\d{4}\s*$/]'],
+                'errors' => ['regex_match' => 'Format Tahun Ajaran harus TTTT/TTTT, contoh: 2026/2027.'],
+            ],
             'start_date' => ['label' => 'Tanggal Mulai', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
             'end_date' => ['label' => 'Tanggal Akhir', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
         ];
@@ -123,7 +128,7 @@ class AcademicYearController extends BaseController
             return $this->response->setJSON([
                 'id' => $id,
                 'success' => true,
-                'message' => 'Updated successfully.',
+                'message' => 'Data berhasil diperbarui.',
             ]);
         }
 
@@ -133,7 +138,7 @@ class AcademicYearController extends BaseController
             return $this->response->setJSON([
                 'id' => 0,
                 'success' => false,
-                'message' => 'Unique identifier already exists.',
+                'message' => 'Data dengan kombinasi ini sudah ada.',
             ]);
         }
 
@@ -150,7 +155,7 @@ class AcademicYearController extends BaseController
         return $this->response->setJSON([
             'id' => $success ? (int)$insert_id : 0,
             'success' => $success,
-            'message' => $success ? 'Saved successfully.' : 'Error occurred.',
+            'message' => $success ? 'Data berhasil disimpan.' : 'Terjadi kesalahan saat menyimpan data.',
             'errors' => $success ? null : $this->model->errors(),
         ]);
     }
@@ -172,7 +177,7 @@ class AcademicYearController extends BaseController
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Data has been marked as deleted.',
+            'message' => 'Data berhasil dihapus.',
         ]);
     }
 
@@ -192,7 +197,7 @@ class AcademicYearController extends BaseController
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Data has been restored successfully.',
+            'message' => 'Data berhasil dipulihkan.',
         ]);
     }
 }

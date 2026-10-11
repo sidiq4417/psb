@@ -120,13 +120,13 @@ class ConfirmationController extends BaseController
         if (!$data) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Registration not found.'
+                'message' => 'Data pendaftaran tidak ditemukan.'
             ]);
         }
         if ((int)$data->student_id !== (int)session()->get('actor')) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Unauthorized.'
+                'message' => 'Akses ditolak.'
             ]);
         }
         if ((int)($data->submitted ?? 0) === 1 || ($data->submitted_at ?? '') !== '') {
@@ -188,7 +188,7 @@ class ConfirmationController extends BaseController
         return $this->response->setJSON([
             'id' => $id,
             'success' => true,
-            'message' => 'Updated successfully.',
+            'message' => 'Pendaftaran berhasil dibatalkan.',
         ]);
     }
 
@@ -273,7 +273,7 @@ class ConfirmationController extends BaseController
         if ((int)($data->student_id ?? 0) !== $student_id) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Unauthorized.'
+                'message' => 'Akses ditolak.'
             ]);
         }
 
@@ -408,7 +408,7 @@ class ConfirmationController extends BaseController
         if ((int)$data->student_id !== $student_id) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['registration' => 'Unauthorized.']
+                'errors' => ['registration' => 'Akses ditolak.']
             ]);
         }
 

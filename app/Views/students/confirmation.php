@@ -219,7 +219,7 @@
                 field: "uploaded_at",
                 formatter: function (row) {
                     const id = parseInt(row.id) || 0;
-                    const verified = parseInt(row.transfer_proof_verified) === 1 || !!row.transfer_proof_verified_at;
+                    const verified = parseInt(row.transfer_proof_verified) === 1;
                     let str = ``;
                     if (!verified) str += `<input name="transfer_proof_${id}" type="file" accept=".jpg,.jpeg,.png,.gif,.pdf" class="form-control form-control-sm" onchange="upload(this, ${id})">`;
                     if (row.transfer_proof) str += `<a href="${_BASE_URL}students/confirmation/download/${H.Esc(encodeURIComponent(row.transfer_proof))}" class="link-primary d-block mt-1 small fw-bold">Lihat Bukti</a>`;
@@ -228,9 +228,9 @@
             },
             {
                 title: "Status Bayar",
-                field: "transfer_proof_verified_at",
+                field: "transfer_proof_verified",
                 formatter: function (row) {
-                    return row.transfer_proof_verified_at ? '<span class="badge bg-success">Lunas</span>' : '<span class="badge bg-warning">Menunggu</span>';
+                    return parseInt(row.transfer_proof_verified) === 1 ? '<span class="badge bg-success">Lunas</span>' : '<span class="badge bg-warning">Menunggu</span>';
                 }
             },
         ],
@@ -257,8 +257,8 @@
         });
     }
 
-    async function renderSubjectGradeRequirements() {
-        const res = await fetchData(_BASE_URL + "students/subject-grade-requirements/lists", null);
+    async function renderSubjectGradeRequirements(id) {
+        const res = await fetchData(_BASE_URL + "students/subject-grade-requirements/lists", JSON.stringify({ registration_id: id }));
         new DataGrid(_grid3, {
             showToolbar: false,
             canSearch: false,
@@ -281,8 +281,8 @@
         });
     }
 
-    async function renderDocumentRequirements() {
-        const res = await fetchData(_BASE_URL + "students/document-requirements/lists", null);
+    async function renderDocumentRequirements(id) {
+        const res = await fetchData(_BASE_URL + "students/document-requirements/lists", JSON.stringify({ registration_id: id }));
         new DataGrid(_grid4, {
             showToolbar: false,
             canSearch: false,

@@ -98,7 +98,7 @@ trait DataTrait
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Data has been marked as deleted.',
+            'message' => 'Data berhasil dihapus.',
         ]);
     }
 
@@ -120,7 +120,7 @@ trait DataTrait
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Data has been restored successfully.',
+            'message' => 'Data berhasil dipulihkan.',
         ]);
     }
 }

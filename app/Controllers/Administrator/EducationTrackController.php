@@ -99,7 +99,7 @@ class EducationTrackController extends BaseController
                 return $this->response->setJSON([
                     'id' => 0,
                     'success' => false,
-                    'message' => 'Unique identifier collision.',
+                    'message' => 'Data dengan kombinasi ini sudah ada.',
                 ]);
             }
 
@@ -109,7 +109,7 @@ class EducationTrackController extends BaseController
             return $this->response->setJSON([
                 'id' => $id,
                 'success' => true,
-                'message' => 'Updated successfully.',
+                'message' => 'Data berhasil diperbarui.',
             ]);
         }
 
@@ -118,7 +118,7 @@ class EducationTrackController extends BaseController
             return $this->response->setJSON([
                 'id' => 0,
                 'success' => false,
-                'message' => 'Unique identifier already exists.',
+                'message' => 'Data dengan kombinasi ini sudah ada.',
             ]);
         }
 
@@ -128,7 +128,7 @@ class EducationTrackController extends BaseController
         return $this->response->setJSON([
             'id' => $insertId ? (int)$insertId : 0,
             'success' => (bool)$insertId,
-            'message' => $insertId ? 'Saved successfully.' : 'Error occurred.',
+            'message' => $insertId ? 'Data berhasil disimpan.' : 'Terjadi kesalahan saat menyimpan data.',
         ]);
     }
 }

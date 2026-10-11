@@ -74,6 +74,7 @@ class MailService
         $email->setTo($to);
         $email->setSubject($subject);
         $email->setMessage($message);
+        $email->setAltMessage(self::toPlainText($message));
 
         try {
             if ($email->send(false)) {
@@ -85,5 +86,55 @@ class MailService
         }
 
         return false;
+    }
+
+    /**
+     * Convert an HTML email body to its plain-text alternative.
+     *
+     * CodeIgniter's own fallback only strips the tags, which leaves HTML
+     * entities (&nbsp;, &#x3A; ...) and the template indentation in the text
+     * part. This keeps the <body> only, renders whitespace like a browser,
+     * shows each link as "text (URL)", breaks lines at <br> and block
+     * elements, then decodes entities and tidies the whitespace.
+     *
+     * @param string $html HTML body.
+     * @return string Plain-text body.
+     */
+    private static function toPlainText(string $html): string
+    {
+        if (preg_match('/<body\b[^>]*>(.*)<\/body>/is', $html, $match)) {
+            $html = $match[1];
+        }
+        $html = (string) preg_replace(['/<!--.*?-->/s', '/<(head|title|style|script)\b[^>]*>.*?<\/\1\s*>/is'], '', $html);
+
+        // Whitespace in markup is not significant.
+        $html = (string) preg_replace('/[ \t\r\n\f]+/', ' ', $html);
+
+        // Keep link targets readable: "text (URL)", or only the URL when the text is the URL.
+        $html = (string) preg_replace_callback(
+            '/<a\b[^>]*?\shref\s*=\s*(["\'])(.*?)\1[^>]*>(.*?)<\/a\s*>/is',
+            static function (array $m): string {
+                $url = trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $text = trim(html_entity_decode(strip_tags($m[3]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                if (!preg_match('#^https?://#i', $url) || $text === $url) {
+                    return $m[3];
+                }
+                $href = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+
+                return $text === '' ? $href : $m[3] . ' (' . $href . ')';
+            },
+            $html
+        );
+
+        $html = (string) preg_replace('/<br\b[^>]*>/i', "\n", $html);
+        $html = (string) preg_replace(['/<li\b[^>]*>/i', '/<\/li\s*>/i'], ["\n- ", ''], $html);
+        $html = (string) preg_replace('/<\/?(?:p|div|h[1-6]|table|thead|tbody|tfoot|tr|ul|ol|blockquote|hr)\b[^>]*>/i', "\n\n", $html);
+
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = (string) preg_replace('/(?:[^\S\n]|\x{00A0})+/u', ' ', $text);
+        $text = (string) preg_replace('/^ +| +$/m', '', $text);
+        $text = (string) preg_replace('/\n{3,}/', "\n\n", $text);
+
+        return trim($text);
     }
 }

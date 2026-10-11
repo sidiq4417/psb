@@ -9,7 +9,6 @@ use App\Models\RegistrationModel;
 use App\Models\UserModel;
 use App\Traits\DataTrait;
 use CodeIgniter\HTTP\ResponseInterface;
-use Config\Database;
 use Config\Setting;
 use ReflectionException;
 
@@ -50,18 +49,10 @@ class ProfileController extends BaseController
             return view('profile', $vars);
         }
 
-        $is_submitted = false;
-        $rows = new RegistrationModel()->findByStudentId($this->id)->getResult();
-        if (!empty($rows)) {
-            $db = Database::connect();
-            $reg = $db->table('registrations')->where('id', (int) $rows[0]->id)->get()->getRow();
-            $is_submitted = (bool) ($reg->submitted ?? false);
-        }
-
         $vars['title'] = 'Akun Saya';
         $vars['full_name'] = $data->full_name ?? '';
         $vars['email'] = $data->email ?? '';
-        $vars['is_submitted'] = $is_submitted;
+        $vars['is_submitted'] = $this->isNameLocked();
         return view('students/account', $vars);
     }
 
@@ -106,15 +97,7 @@ class ProfileController extends BaseController
 
         $is_student = (bool) (session()->get('is_student') ?? false);
 
-        $is_submitted = false;
-        if ($is_student) {
-            $rows = new RegistrationModel()->findByStudentId($this->id)->getResult();
-            if (!empty($rows)) {
-                $db = Database::connect();
-                $reg = $db->table('registrations')->where('id', (int) $rows[0]->id)->get()->getRow();
-                $is_submitted = (bool) ($reg->submitted ?? false);
-            }
-        }
+        $is_submitted = $is_student && $this->isNameLocked();
 
         if (empty($email)) {
             return $this->response->setJSON([
@@ -135,7 +118,7 @@ class ProfileController extends BaseController
             'email' => ['label' => 'Email', 'rules' => 'required|valid_email|max_length[200]'],
         ];
 
-        // The name is locked once the registration has been confirmed, so it is neither validated nor saved then.
+        // The name is locked once any registration has been confirmed, so it is neither validated nor saved then.
         if (!$is_submitted) {
             $rules['full_name'] = [
                 'label' => 'Nama Lengkap',
@@ -198,6 +181,30 @@ class ProfileController extends BaseController
         }
         $updateData['email'] = $email;
 
+        // users.unique_id is derived from the email (students: the email itself, admins/operators: "user:<email>")
+        // and is UNIQUE, so it has to follow the email; otherwise the old address can no longer be registered.
+        if ($changeEmail) {
+            $old_email = mb_strtolower((string) ($existing->email ?? ''));
+            $old_unique_id = mb_strtolower((string) ($existing->unique_id ?? ''));
+            $new_unique_id = null;
+            if ($old_unique_id === $old_email) {
+                $new_unique_id = $email;
+            } elseif ($old_unique_id === 'user:' . $old_email) {
+                $new_unique_id = 'user:' . mb_strtolower($email);
+            }
+
+            if ($new_unique_id !== null) {
+                $taken = $userModel->where('unique_id', $new_unique_id)->where('id !=', $this->id)->countAllResults() > 0;
+                if ($taken) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'errors' => ['email' => 'Email sudah digunakan oleh pengguna lain']
+                    ]);
+                }
+                $updateData['unique_id'] = $new_unique_id;
+            }
+        }
+
         if ($changePassword) {
             $updateData['password'] = password_hash(
                 $password,
@@ -225,6 +232,20 @@ class ProfileController extends BaseController
             'success' => true,
             'message' => 'Perubahan berhasil disimpan.',
         ]);
+    }
+
+    /**
+     * Check whether the student's name is locked.
+     *
+     * The name is printed on the registration form, so it can no longer be
+     * changed once any of the student's registrations has been finalised
+     * ("Kirim Final"), not only the newest one.
+     *
+     * @return bool True when at least one active registration is submitted.
+     */
+    private function isNameLocked(): bool
+    {
+        return new RegistrationModel()->findSubmittedByStudentSingle($this->id) !== null;
     }
 
     /**

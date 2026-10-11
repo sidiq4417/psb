@@ -34,8 +34,11 @@ class DashboardController extends BaseController
 
         // Retrieve statistics and analytical data from the model
         $stats = $model->getSummaryStats($admission_year);
-        $registrationsToday = $model->getRegistrationsToday();
-        $pendingPayments = $model->getPendingPayments($admission_year);
+        // Applicant names and registration numbers are admin-only, like "Data Pendaftar";
+        // operators only see the aggregate counts and charts.
+        $isAdmin = (bool) session()->get('is_admin');
+        $registrationsToday = $isAdmin ? $model->getRegistrationsToday() : [];
+        $pendingPayments = $isAdmin ? $model->getPendingPayments($admission_year) : [];
         $trendData = $model->getRegistrationTrend();
         $majorStats = $model->getPopularMajors($admission_year);
 
@@ -47,6 +50,7 @@ class DashboardController extends BaseController
             'stats' => $stats,
             'registrations_today' => $registrationsToday,
             'pending_payments' => $pendingPayments,
+            'is_admin' => $isAdmin,
             'trend_data' => $trendData,
             'major_stats' => $majorStats
         ]);

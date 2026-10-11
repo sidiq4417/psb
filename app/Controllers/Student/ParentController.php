@@ -88,7 +88,7 @@ class ParentController extends BaseController
         if (!$user) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['user' => 'User not found.']
+                'errors' => ['user' => 'Pengguna tidak ditemukan.']
             ]);
         }
 
@@ -113,7 +113,7 @@ class ParentController extends BaseController
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Updated successfully.',
+            'message' => 'Data berhasil disimpan.',
             'row' => $userModel->findWithoutSecrets($this->id),
         ]);
     }

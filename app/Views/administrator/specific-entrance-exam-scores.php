@@ -202,6 +202,7 @@
     new FormBuilder(_form, {
         ajaxUrl: _BASE_URL + "administrator/specific-entrance-exam-scores",
         title: "Nilai Ujian Tes Tulis",
+        canDelete: false,
         fields: [
             {label: "Mata Pelajaran", name: "subject_id", type: "select", options: DS.Subjects, required: true},
             {label: "Nilai Minimum", name: "threshold_score", type: "number", required: true}

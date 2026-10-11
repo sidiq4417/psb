@@ -39,10 +39,10 @@ class DashboardModel extends Model
      */
     public function getSummaryStats(int $admission_year): object
     {
-        $totalReg = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ?', [$admission_year])->getRow()->total;
-        $totalFinal = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND submitted = TRUE', [$admission_year])->getRow()->total;
-        $totalVerified = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND transfer_proof_verified = TRUE', [$admission_year])->getRow()->total;
-        $totalPending = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND transfer_proof_verified = FALSE AND transfer_proof_uploaded_at IS NOT NULL', [$admission_year])->getRow()->total;
+        $totalReg = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND is_deleted = FALSE', [$admission_year])->getRow()->total;
+        $totalFinal = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND is_deleted = FALSE AND submitted = TRUE', [$admission_year])->getRow()->total;
+        $totalVerified = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND is_deleted = FALSE AND transfer_proof_verified = TRUE', [$admission_year])->getRow()->total;
+        $totalPending = $this->dbs->query('SELECT COUNT(*) AS total FROM registrations WHERE admission_year = ? AND is_deleted = FALSE AND transfer_proof_verified = FALSE AND transfer_proof_uploaded_at IS NOT NULL', [$admission_year])->getRow()->total;
 
         return (object)[
             'total' => (int)($totalReg ?? 0),
@@ -55,6 +55,10 @@ class DashboardModel extends Model
     /**
      * Get all registrations created today.
      *
+     * "Today" is taken from PHP in the application time zone (App::$appTimezone),
+     * the same clock the model timestamps in registrations.created_at are written
+     * with, instead of the database CURDATE() whose session time zone may differ.
+     *
      * @return array The registration records with student name and status.
      */
     public function getRegistrationsToday(): array
@@ -65,9 +69,9 @@ class DashboardModel extends Model
                    r.submitted
             FROM registrations r
             LEFT JOIN users u ON r.student_id = u.id
-            WHERE DATE(r.created_at) = CURDATE()
+            WHERE DATE(r.created_at) = ? AND r.is_deleted = FALSE
             ORDER BY r.created_at DESC
-        ')->getResult();
+        ', [date('Y-m-d')])->getResult();
     }
 
     /**
@@ -84,7 +88,7 @@ class DashboardModel extends Model
                    r.transfer_proof_uploaded_at AS uploaded_at
             FROM registrations r
             LEFT JOIN users u ON r.student_id = u.id
-            WHERE r.admission_year = ?
+            WHERE r.admission_year = ? AND r.is_deleted = FALSE
               AND r.transfer_proof_uploaded_at IS NOT NULL
               AND r.transfer_proof_verified = FALSE
             ORDER BY r.transfer_proof_uploaded_at ASC
@@ -94,23 +98,28 @@ class DashboardModel extends Model
     /**
      * Get daily registration counts for the last 14 days.
      *
+     * The window ends on today's date in the application time zone
+     * (App::$appTimezone), not the database CURDATE().
+     *
      * @return array Each entry contains date_label and total.
      */
     public function getRegistrationTrend(): array
     {
+        $today = date('Y-m-d');
+
         return $this->dbs->query('
             SELECT days.dt AS date_label, COUNT(r.id) AS total
             FROM (
-                SELECT CURDATE() - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS dt
+                SELECT CAST(? AS DATE) - INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY AS dt
                 FROM (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) AS a
                 CROSS JOIN (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) AS b
                 CROSS JOIN (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) AS c
             ) AS days
             LEFT JOIN registrations r ON DATE(r.created_at) = days.dt AND r.is_deleted = FALSE
-            WHERE days.dt BETWEEN CURDATE() - INTERVAL 13 DAY AND CURDATE()
+            WHERE days.dt BETWEEN CAST(? AS DATE) - INTERVAL 13 DAY AND CAST(? AS DATE)
             GROUP BY days.dt
             ORDER BY days.dt ASC
-        ')->getResult();
+        ', [$today, $today, $today])->getResult();
     }
 
     /**

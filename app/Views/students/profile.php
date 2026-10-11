@@ -196,10 +196,15 @@
                         <label for="birth_place_district_id">Kab/Kota Tempat Lahir</label>
                     </div>
                 </div>
+                <?php
+                // With an Indonesian district chosen, birth_place holds the district name; the
+                // free-text field is hidden then and starts empty so it never posts a stale value.
+                $birth_place_text = (($row->birth_place_country_id ?? '') === 'ID' && !empty($row->birth_place_district_id)) ? '' : ($row->birth_place ?? '');
+                ?>
                 <div class="col-md-12" id="birth_place_text_wrapper">
                     <div class="form-floating">
                         <input id="birth_place" type="text" class="form-control" name="birth_place" maxlength="100"
-                               value="<?= esc($row->birth_place ?? '', 'attr') ?>" placeholder="Kota Tempat Lahir"
+                               value="<?= esc($birth_place_text, 'attr') ?>" placeholder="Kota Tempat Lahir"
                                <?= $is_locked ? 'disabled' : '' ?>>
                         <label for="birth_place">Kota Tempat Lahir (isi jika lahir di luar negeri atau tidak ada di daftar)</label>
                     </div>
@@ -330,11 +335,20 @@
         }
     }
 
-    function toggleBirthPlaceText() {
+    /**
+     * Whether the free-text birth place is used: only when the birth country is
+     * not Indonesia or no district (kab/kota) is chosen from the list.
+     * @returns {boolean}
+     */
+    function usesBirthPlaceText() {
         const country = document.querySelector('[name="birth_place_country_id"]').value;
         const district = document.querySelector('[name="birth_place_district_id"]').value;
+        return !(country === "ID" && district !== "99" && district !== "");
+    }
+
+    function toggleBirthPlaceText() {
         const wrapper = document.getElementById("birth_place_text_wrapper");
-        if (wrapper) wrapper.classList.toggle("d-none", country === "ID" && district !== "99" && district !== "");
+        if (wrapper) wrapper.classList.toggle("d-none", !usesBirthPlaceText());
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -383,6 +397,8 @@
                         const input = document.querySelector(`[name="${name}"]`);
                         if (input) formData.set(name, input.value);
                     });
+                    // The hidden free-text field is not sent when a district is chosen.
+                    if (!usesBirthPlaceText()) formData.set("birth_place", "");
 
                     const res = await H.AjaxRequest(`${_BASE_URL}students/profile/save`, { body: formData });
                     const messageType = res.success ? "alert-success" : "alert-danger";
@@ -393,6 +409,10 @@
                             const input = document.querySelector(`[name="${name}"]`);
                             if (input) input.value = data[name] ?? "";
                         });
+                        // birth_place holds the derived district name then; keep the free-text field empty.
+                        if (data.birth_place_country_id === "ID" && data.birth_place_district_id) {
+                            document.querySelector('[name="birth_place"]').value = "";
+                        }
                         if (data.birth_place_country_id === "ID") {
                             await renderProvinces();
                             if (data.birth_place_province_id) await renderDistricts(data.birth_place_province_id);

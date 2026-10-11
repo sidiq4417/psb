@@ -166,6 +166,28 @@
         cursor: not-allowed;
     }
 
+    .registration-status {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .registration-status .reg-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.25rem 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .registration-status .reg-item:last-of-type {
+        border-bottom: none;
+    }
+
     .status-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.65rem;
@@ -241,6 +263,8 @@
     </div>
 </div>
 
+<div id="registrationStatus" class="registration-status mb-4 d-none"></div>
+
 <div id="documentList" class="row g-3">
     <div class="col-12 text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
@@ -255,7 +279,7 @@
 
 <script>
     let docs = [];
-    let isSubmitted = false;
+    let registrations = [];
 
     async function fetchData(url, params = null) {
         const isFormData = params instanceof FormData;
@@ -346,7 +370,8 @@
         docs.forEach((d, i) => {
             const icon = docIcons[i % docIcons.length];
             const hasFile = !!d.file_name;
-            const disabled = isSubmitted ? "disabled" : "";
+            const locked = d.editable !== true;
+            const disabled = locked ? "disabled" : "";
             const documentId = parseInt(d.document_id) || 0;
             const requiredBadge = d.required === false
                 ? '<span class="badge bg-light text-secondary border ms-1">Opsional</span>'
@@ -354,7 +379,7 @@
 
             html += `
                 <div class="col-md-6">
-                    <div class="doc-card ${isSubmitted ? 'disabled' : ''}">
+                    <div class="doc-card ${locked ? 'disabled' : ''}">
                         <div class="card-body">
                             <div class="d-flex align-items-start gap-3 mb-3">
                                 <div class="doc-icon-wrap ${hasFile ? 'uploaded' : ''}">
@@ -382,9 +407,11 @@
                                     <input type="file" accept="${acceptTypes}" ${disabled}
                                         onchange="uploadFile(this, ${documentId})">
                                     <div class="upload-label">
-                                        ${hasFile
-                                            ? '<i class="cil-check-circle"></i> Ketuk untuk ganti file'
-                                            : '<i class="cil-cloud-upload"></i> Pilih file untuk diunggah'}
+                                        ${locked
+                                            ? '<i class="cil-lock-locked"></i> Terkunci'
+                                            : (hasFile
+                                                ? '<i class="cil-check-circle"></i> Ketuk untuk ganti file'
+                                                : '<i class="cil-cloud-upload"></i> Pilih file untuk diunggah')}
                                     </div>
                                 </div>
                             </div>
@@ -396,16 +423,52 @@
         container.innerHTML = html;
     }
 
+    /**
+     * Show which registrations still accept document uploads. Documents are
+     * stored per registration; finalised registrations and closed periods are locked.
+     */
+    function renderRegistrationStatus() {
+        const box = document.getElementById("registrationStatus");
+        const lockedCount = registrations.filter(r => r.editable !== true).length;
+        const header = document.querySelector(".doc-header p");
+
+        if (registrations.length && lockedCount === registrations.length) {
+            header.textContent = registrations.every(r => r.submitted === true)
+                ? "Pendaftaran telah dikonfirmasi. Dokumen tidak dapat diubah lagi."
+                : "Dokumen tidak dapat diubah lagi karena pendaftaran sudah dikirim final atau periode pendaftaran sudah ditutup.";
+        }
+
+        if (registrations.length < 2 && lockedCount === 0) {
+            box.classList.add("d-none");
+            box.innerHTML = "";
+            return;
+        }
+
+        let html = `<div class="fw-semibold mb-2"><i class="cil-lock-locked me-2"></i>Status Pendaftaran</div>`;
+        registrations.forEach(r => {
+            const badge = r.submitted === true ? "bg-success" : (r.editable === true ? "bg-primary" : "bg-secondary");
+            const icon = r.editable === true ? "cil-lock-unlocked" : "cil-lock-locked";
+            const number = r.registration_number ? ` <span class="text-muted small">(No. ${H.Esc(r.registration_number)})</span>` : "";
+            html += `
+                <div class="reg-item">
+                    <div>${H.Esc(r.label)}${number}</div>
+                    <span class="badge ${badge} text-nowrap"><i class="${icon} me-1"></i>${H.Esc(r.status)}${r.editable === true ? "" : " (terkunci)"}</span>
+                </div>`;
+        });
+        if (lockedCount < registrations.length) {
+            html += `<p class="small text-muted mb-0 mt-2">Dokumen yang diunggah hanya disimpan pada pendaftaran yang belum dikirim final dan periodenya masih dibuka. Dokumen pada pendaftaran yang terkunci tidak berubah.</p>`;
+        }
+        box.innerHTML = html;
+        box.classList.remove("d-none");
+    }
+
     async function loadData() {
         try {
             const res = await fetchData(_BASE_URL + "students/document-requirements/lists");
             docs = res.records || [];
-            isSubmitted = docs.some(d => d.submitted === true);
+            registrations = Array.isArray(res.registrations) ? res.registrations : [];
 
-            if (isSubmitted) {
-                document.querySelector(".doc-header p").textContent = "Pendaftaran telah dikonfirmasi. Dokumen tidak dapat diubah lagi.";
-            }
-
+            renderRegistrationStatus();
             renderCards();
             updateProgress();
         } catch (err) {

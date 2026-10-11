@@ -217,6 +217,8 @@
     let allRecords = [];
     let selectedOfferingIds = [];
     let isSubmitted = false;
+    let submittedOfferingIds = [];
+    let allSubmitted = false;
     let allowMultiple = <?= toJson((bool)($allow_multiple ?? false)) ?>;
 
     async function fetchData(url, params = null) {
@@ -229,12 +231,22 @@
             cache: "no-cache",
             mode: "cors"
         });
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        if (!res.ok) {
+            const err = new Error(`HTTP error! Status: ${res.status}`);
+            try { const data = await res.json(); if (data && typeof data.message === 'string') err.serverMessage = data.message; } catch (e) {}
+            throw err;
+        }
         return res.json();
     }
 
     async function saveRegistration(offering_id) {
-        const res = await fetchData(_BASE_URL + "students/admissions/save", JSON.stringify({ admission_offering_id: offering_id }));
+        let res;
+        try {
+            res = await fetchData(_BASE_URL + "students/admissions/save", JSON.stringify({ admission_offering_id: offering_id }));
+        } catch (error) {
+            console.error(error);
+            res = { success: false, message: error.serverMessage || "Terjadi kesalahan saat memproses pilihan. Silakan coba lagi." };
+        }
         const elementId = document.querySelector(".alert-response");
         elementId.classList.remove('d-none');
         elementId.classList.remove('alert-success', 'alert-danger');
@@ -258,7 +270,13 @@
     }
 
     async function removeRegistration(offering_id) {
-        const res = await fetchData(_BASE_URL + "students/admissions/remove", JSON.stringify({ admission_offering_id: offering_id }));
+        let res;
+        try {
+            res = await fetchData(_BASE_URL + "students/admissions/remove", JSON.stringify({ admission_offering_id: offering_id }));
+        } catch (error) {
+            console.error(error);
+            res = { success: false, message: error.serverMessage || "Terjadi kesalahan saat memproses pilihan. Silakan coba lagi." };
+        }
         const elementId = document.querySelector(".alert-response");
         elementId.classList.remove('d-none');
         elementId.classList.remove('alert-success', 'alert-danger');
@@ -321,7 +339,7 @@
                 <div class="card h-100 shadow-sm admission-card${isSelected ? ' selected' : ''}${cursorClass}" ${clickHandler}>
                     <div class="card-body p-4">
                         <span class="badge badge-degree ${isSelected ? 'bg-success text-white' : 'bg-info text-dark'} text-uppercase">${H.Esc(row.school_name)}</span>
-                        ${isSubmitted && isSelected ? '<span class="badge bg-success position-absolute top-0 end-0 m-3"><i class="cil-check"></i> Terkonfirmasi</span>' : ''}
+                        ${submittedOfferingIds.includes(offeringId) ? '<span class="badge bg-success position-absolute top-0 end-0 m-3"><i class="cil-check"></i> Terkonfirmasi</span>' : ''}
                         <h5 class="card-major">${H.Esc(row.grade_name)}</h5>
                         <div class="mt-3">
                             <div class="card-detail">
@@ -403,8 +421,10 @@
                 selectedOfferingIds = [res.admission_offering_id];
             }
             isSubmitted = res.submitted === true;
+            submittedOfferingIds = (res.submitted_offering_ids || []).map(Number);
+            allSubmitted = res.all_submitted === true;
 
-            if (isSubmitted) {
+            if (allSubmitted) {
                 document.getElementById("submittedBanner").classList.remove("d-none");
                 document.getElementById("infoText").classList.add("d-none");
                 document.getElementById("footerAction").innerHTML = `
@@ -416,6 +436,16 @@
                             Lihat Detail <i class="cil-arrow-right ms-1"></i>
                         </a>
                     </div>
+                `;
+            } else if (isSubmitted) {
+                document.getElementById("submittedBanner").classList.add("d-none");
+                document.getElementById("infoText").textContent = 'Sebagian pendaftaran Anda sudah dikirim final sehingga pilihan program tidak dapat diubah lagi. Pendaftaran yang belum dikirim masih dapat dilengkapi di halaman Nilai Rapor dan Dokumen, lalu dikirim final di halaman Konfirmasi.';
+                document.getElementById("infoText").classList.remove("d-none");
+                document.getElementById("footerAction").innerHTML = `
+                    <a href="${_BASE_URL}students/confirmation"
+                        class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+                        Lanjut ke Konfirmasi <i class="cil-arrow-right ms-2 font-weight-bold"></i>
+                    </a>
                 `;
             } else {
                 document.getElementById("submittedBanner").classList.add("d-none");

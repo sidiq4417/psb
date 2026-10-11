@@ -161,6 +161,8 @@ class AdmissionOfferingModel extends Model
             $params[] = $admission_period_id;
         }
         $where = count($conditions) > 0 ? ' AND ' . implode(' AND ', $conditions) : '';
+        // Today in the application time zone (App::$appTimezone), not the DB session time zone.
+        array_unshift($params, date('Y-m-d'));
 
         return $db->query("
             SELECT x1.id
@@ -184,7 +186,7 @@ class AdmissionOfferingModel extends Model
             LEFT JOIN admission_pathways xpathway ON x1.admission_pathway_id = xpathway.id
             WHERE x1.is_deleted = FALSE
             AND xperiod.is_deleted = FALSE
-            AND CURRENT_DATE BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
+            AND ? BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
             $where
             ORDER BY x1.sort_order, x1.id
         ", $params);
@@ -195,7 +197,9 @@ class AdmissionOfferingModel extends Model
      *
      * Uses the same conditions as findPublicList(): the offering and its
      * admission period are not deleted and today falls within the period's
-     * registration_start_at..registration_end_at window.
+     * registration_start_at..registration_end_at window. "Today" is taken
+     * from PHP in the application time zone (App::$appTimezone) rather than
+     * the database CURRENT_DATE, whose session time zone may differ (e.g. UTC).
      *
      * @param int $id The offering ID.
      * @return object|null The offering with its period data, or null when not open.
@@ -218,9 +222,9 @@ class AdmissionOfferingModel extends Model
             WHERE x1.id = ?
             AND x1.is_deleted = FALSE
             AND xperiod.is_deleted = FALSE
-            AND CURRENT_DATE BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
+            AND ? BETWEEN xperiod.registration_start_at AND xperiod.registration_end_at
             LIMIT 1
-        ', [$id])->getRow();
+        ', [$id, date('Y-m-d')])->getRow();
         return is_object($row) ? $row : null;
     }
 

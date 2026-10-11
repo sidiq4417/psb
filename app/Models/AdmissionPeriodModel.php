@@ -44,9 +44,9 @@ class AdmissionPeriodModel extends Model
             SELECT LEFT(x2.name, 4) AS admission_year
             FROM admission_periods x1
             JOIN academic_years x2 ON x1.academic_year_id = x2.id
-            WHERE CURRENT_DATE BETWEEN x1.registration_start_at AND x1.registration_end_at
+            WHERE ? BETWEEN x1.registration_start_at AND x1.registration_end_at
             LIMIT 1
-        ')->getRow();
+        ', [date('Y-m-d')])->getRow();
         return (int) ($activeAdmission->admission_year ?? date('Y'));
     }
 
@@ -101,9 +101,9 @@ class AdmissionPeriodModel extends Model
             SELECT x2.name AS academic_year_name
             FROM admission_periods x1
             JOIN academic_years x2 ON x1.academic_year_id = x2.id
-            WHERE CURRENT_DATE BETWEEN x1.registration_start_at AND x1.registration_end_at
+            WHERE ? BETWEEN x1.registration_start_at AND x1.registration_end_at
             LIMIT 1
-        ')->getRow();
+        ', [date('Y-m-d')])->getRow();
         return $activeAcademicYear->academic_year_name ?? (string) date('Y');
     }
 }

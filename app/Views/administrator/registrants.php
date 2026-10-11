@@ -144,70 +144,146 @@
     const _grid = "REGISTRANTS", _form = _grid + "_FORM", _form2 = _grid + "_FORM2";
     const countryOptions = Object.assign({ 99: "Lainnya" }, DS.Countries);
     const REGION_URL = _BASE_URL + "administrator/registrants";
+    const REGION_OTHER = { 99: "Lainnya" };
+    // Region selects of the "Perbaikan Data Calon Siswa" form, from the top level down
+    // (bp = birth place, ad = address).
+    const REGION_CHAINS = {
+        bp: ["birth_place_country_id", "birth_place_province_id", "birth_place_district_id"],
+        ad: ["address_country_id", "address_province_id", "address_district_id", "address_subdistrict_id"]
+    };
+    // One counter per chain: a newer load of the same chain makes the older one stale.
     const regionTokens = { bp: 0, ad: 0 };
-    // True while the saved regions are filled in: setting a value fires a change event,
-    // and the cascade would then clear the dependent fields (e.g. the subdistrict).
-    let regionsLoading = false;
+    // Above zero while the script fills a region select: setting its options or value fires a
+    // change event, which must not start the cascade (that would clear the level being loaded).
+    let regionsSilent = 0;
+    // State of the saved regions of the open form: "loading", "ready" or "failed".
+    // Saving is refused until they are loaded, otherwise empty regions would overwrite stored data.
+    let regionsState = "ready";
+    let regionsGeneration = 0;
+
     async function regionGet(url, params) {
         const body = new FormData();
         for (const key in params) body.set(key, params[key]);
         const res = await H.AjaxRequest(url, { body });
         return res || {};
     }
-    async function populateRegions(fb, prefix, country, vProv, vDist, vSub) {
-        const hasSub = fb.fieldByName[prefix + "subdistrict_id"] != null;
-        const other = { 99: "Lainnya" };
-        if (country !== "ID") {
-            await fb.updateOptions(prefix + "province_id", other);
-            await fb.updateOptions(prefix + "district_id", other);
-            if (hasSub) await fb.updateOptions(prefix + "subdistrict_id", other);
-            return;
+
+    /**
+     * Replace the options (and optionally the value) of a region select without starting the cascade.
+     * FormBuilder.updateOptions applies them (and fires the change events) before it returns.
+     *
+     * @param {FormBuilder} fb
+     * @param {string} field
+     * @param {Object} options
+     * @param {?string} value
+     * @returns {Promise<void>}
+     */
+    function setRegionOptions(fb, field, options, value = null) {
+        if (!fb.fieldByName[field]) return Promise.resolve();
+        regionsSilent++;
+        try {
+            return fb.updateOptions(field, options, value);
+        } finally {
+            regionsSilent--;
         }
-        const provinces = await regionGet(REGION_URL + "/provinces", {});
-        await fb.updateOptions(prefix + "province_id", Object.assign({}, other, provinces.provinces || {}), vProv || null);
-        if (!vProv) return;
-        const districts = await regionGet(REGION_URL + "/districts", { province_id: vProv });
-        await fb.updateOptions(prefix + "district_id", Object.assign({}, other, districts.districts || {}), vDist || null);
-        if (!vDist || !hasSub) return;
-        const subdistricts = await regionGet(REGION_URL + "/subdistricts", { district_id: vDist });
-        await fb.updateOptions(prefix + "subdistrict_id", Object.assign({}, other, subdistricts.subdistricts || {}), vSub || null);
     }
-    async function cascadeStep(fb, field, value) {
-        const token = (key) => ++regionTokens[key];
-        const stale = (key, tok) => tok !== regionTokens[key];
-        const other = { 99: "Lainnya" };
-        if (field === "birth_place_country_id") {
-            const tok = token("bp");
-            await populateRegions(fb, "birth_place_", value);
-            if (stale("bp", tok)) return;
-        } else if (field === "birth_place_province_id") {
-            const tok = token("bp");
-            await fb.updateOptions("birth_place_district_id", other);
-            if (value && value !== "99") {
-                const districts = await regionGet(REGION_URL + "/districts", { province_id: value });
-                if (stale("bp", tok)) return;
-                await fb.updateOptions("birth_place_district_id", Object.assign({}, other, districts.districts || {}));
-            }
-        } else if (field === "address_country_id") {
-            const tok = token("ad");
-            await populateRegions(fb, "address_", value);
-            if (stale("ad", tok)) return;
-        } else if (field === "address_province_id") {
-            const tok = token("ad");
-            await fb.updateOptions("address_district_id", other);
-            await fb.updateOptions("address_subdistrict_id", other);
-            if (value && value !== "99") {
-                const districts = await regionGet(REGION_URL + "/districts", { province_id: value });
-                if (stale("ad", tok)) return;
-                await fb.updateOptions("address_district_id", Object.assign({}, other, districts.districts || {}));
-            }
-        } else if (field === "address_district_id") {
-            const tok = token("ad");
-            await fb.updateOptions("address_subdistrict_id", other);
-            if (value && value !== "99") {
-                const subdistricts = await regionGet(REGION_URL + "/subdistricts", { district_id: value });
-                if (stale("ad", tok)) return;
-                await fb.updateOptions("address_subdistrict_id", Object.assign({}, other, subdistricts.subdistricts || {}));
+
+    /**
+     * Fetch the options of one region level for the value chosen one level above.
+     *
+     * @param {number} level  1 = province, 2 = regency/city, 3 = subdistrict.
+     * @param {string} parent Value of the level above (country, province or regency/city).
+     * @returns {Promise<Object>} The options, always including "Lainnya".
+     */
+    async function regionOptions(level, parent) {
+        if (level === 1) {
+            if (parent !== "ID") return REGION_OTHER;
+            const res = await regionGet(REGION_URL + "/provinces", {});
+            return Object.assign({}, REGION_OTHER, res.provinces || {});
+        }
+        if (!parent || parent === "99") return REGION_OTHER;
+        if (level === 2) {
+            const res = await regionGet(REGION_URL + "/districts", { province_id: parent });
+            return Object.assign({}, REGION_OTHER, res.districts || {});
+        }
+        const res = await regionGet(REGION_URL + "/subdistricts", { district_id: parent });
+        return Object.assign({}, REGION_OTHER, res.subdistricts || {});
+    }
+
+    /**
+     * Refill the levels of a region chain below the level `from`, one level at a time:
+     * each level's options are awaited before its saved value is set, and only then is
+     * the next level loaded, so a saved regency or subdistrict is not lost while loading.
+     *
+     * @param {FormBuilder} fb
+     * @param {string} key      "bp" or "ad".
+     * @param {number} from     Index of the level whose value is known (0 = country).
+     * @param {Array} values    Value per level: values[from] is the chosen value, deeper
+     *                          entries are saved values to restore (empty to leave unset).
+     * @returns {Promise<boolean>} False when a newer load of the same chain took over.
+     */
+    async function fillRegions(fb, key, from, values) {
+        const chain = REGION_CHAINS[key];
+        const tok = ++regionTokens[key];
+        const text = (v) => (v === undefined || v === null) ? "" : String(v);
+        // Reset the deeper levels first, so no choice of the previous parent remains.
+        for (let i = from + 1; i < chain.length; i++) {
+            await setRegionOptions(fb, chain[i], REGION_OTHER);
+        }
+        let parent = text(values[from]);
+        for (let i = from + 1; i < chain.length; i++) {
+            const options = await regionOptions(i, parent);
+            if (tok !== regionTokens[key]) return false;
+            const saved = text(values[i]);
+            const value = saved !== "" && Object.prototype.hasOwnProperty.call(options, saved) ? saved : null;
+            await setRegionOptions(fb, chain[i], options, value);
+            if (value === null) break;
+            parent = value;
+        }
+        return tok === regionTokens[key];
+    }
+
+    /**
+     * Load the saved birth place and address regions of the opened applicant.
+     *
+     * @param {Object} values The applicant record.
+     * @param {FormBuilder} fb
+     */
+    async function loadSavedRegions(values, fb) {
+        const generation = ++regionsGeneration;
+        regionsState = "loading";
+        try {
+            await fillRegions(fb, "bp", 0, [values.birth_place_country_id, values.birth_place_province_id, values.birth_place_district_id]);
+            if (generation !== regionsGeneration) return;
+            await fillRegions(fb, "ad", 0, [values.address_country_id, values.address_province_id, values.address_district_id, values.address_subdistrict_id]);
+            if (generation !== regionsGeneration) return;
+            regionsState = "ready";
+        } catch (error) {
+            if (generation !== regionsGeneration) return;
+            regionsState = "failed";
+            console.error(error);
+            Alert.error("Data wilayah gagal dimuat. Tutup formulir lalu buka kembali sebelum menyimpan.");
+        }
+    }
+
+    /**
+     * Follow a change of a region select: refill the levels below it.
+     *
+     * @param {FormBuilder} fb
+     * @param {string} field
+     * @param {string} value
+     */
+    async function cascadeRegions(fb, field, value) {
+        for (const key in REGION_CHAINS) {
+            const level = REGION_CHAINS[key].indexOf(field);
+            if (level < 0 || level === REGION_CHAINS[key].length - 1) continue;
+            const values = [];
+            values[level] = value;
+            try {
+                await fillRegions(fb, key, level, values);
+            } catch (error) {
+                console.error(error);
+                Alert.error("Data wilayah gagal dimuat. Silakan pilih ulang.");
             }
         }
     }
@@ -607,11 +683,13 @@
     new FormBuilder(_form, {
         ajaxUrl: _BASE_URL + "administrator/registrants",
         title: "Data Calon Siswa Baru",
+        canDelete: false,
         fields: [
+            // The dates are shown only: the server stamps them when a checkbox is switched on and clears them when it is switched off.
             { label: "Konfirmasi Pendaftaran", name: "submitted", type: "checkbox" },
-            { label: "Tanggal Konfirmasi Pendaftaran", name: "submitted_at", type: "date" },
+            { label: "Tanggal Konfirmasi Pendaftaran", name: "submitted_at", disabled: true, placeholder: "Terisi otomatis saat dikonfirmasi" },
             { label: "Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified", type: "checkbox" },
-            { label: "Tanggal Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified_at", type: "date" },
+            { label: "Tanggal Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified_at", disabled: true, placeholder: "Terisi otomatis saat diverifikasi" },
             { label: "Status Seleksi", name: "selection_status", type: "select", options: DS.RegistrationStatuses, placeholder: "Pilih status kelulusan...", dependency: { field: "submitted", value: true } },
             { label: "Catatan Seleksi", name: "selection_notes", type: "textarea", placeholder: "Masukan catatan seleksi, alasan diterima/ditolak, dll.", dependency: { field: "submitted", value: true } },
         ],
@@ -644,6 +722,7 @@
             { label: "Negara Tempat Lahir", name: "birth_place_country_id", type: "select", options: countryOptions },
             { label: "Provinsi Tempat Lahir", name: "birth_place_province_id", type: "select", options: { 99: "Lainnya" } },
             { label: "Kab/Kota Tempat Lahir", name: "birth_place_district_id", type: "select", options: { 99: "Lainnya" } },
+            { label: "Kota Tempat Lahir (isi jika lahir di luar negeri atau tidak ada di daftar)", name: "birth_place" },
             { label: "Tanggal Lahir", name: "birth_date", type: "date" },
 
             { type: "header", label: "Alamat" },
@@ -698,26 +777,30 @@
             { label: "Nama Asal Sekolah", name: "school_name" },
             { label: "Alamat Asal Sekolah", name: "school_address" },
             { label: "Jurusan", name: "school_major" },
-            { label: "Tahun Lulus", name: "school_graduation_year", type: "integer" },
+            { label: "Tahun Lulus", name: "school_graduation_year" },
 
             { type: "header", label: "Kata Sandi" },
             { label: "Kata Sandi Baru", name: "password", type: "text", placeholder: "Kosongkan jika tidak ingin mengubah kata sandi" }
         ],
         afterFetch: (values) => {
             values.password = '';
+            regionsState = "loading";
         },
-        onShow: async (values, fb) => {
-            regionsLoading = true;
-            try {
-                await populateRegions(fb, "birth_place_", values.birth_place_country_id, values.birth_place_province_id, values.birth_place_district_id, null);
-                await populateRegions(fb, "address_", values.address_country_id, values.address_province_id, values.address_district_id, values.address_subdistrict_id);
-            } finally {
-                regionsLoading = false;
-            }
-        },
+        onShow: loadSavedRegions,
         onFieldChange: (field, value, fb) => {
-            if (regionsLoading) return;
-            cascadeStep(fb, field, value);
+            if (regionsSilent > 0) return;
+            cascadeRegions(fb, field, value);
+        },
+        onValidate: () => {
+            if (regionsState === "loading") {
+                Alert.warning("Data wilayah masih dimuat. Tunggu sebentar, lalu simpan kembali.");
+                return false;
+            }
+            if (regionsState === "failed") {
+                Alert.error("Data wilayah gagal dimuat. Tutup formulir lalu buka kembali sebelum menyimpan.");
+                return false;
+            }
+            return true;
         },
         afterSave: reloadRegistrants
     });

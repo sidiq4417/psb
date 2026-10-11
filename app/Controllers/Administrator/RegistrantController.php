@@ -193,13 +193,23 @@ class RegistrantController extends BaseController
     /**
      * Save or update the registrant verification status.
      *
+     * The confirmation and verification dates are not taken from the form: they are
+     * stamped when the matching checkbox is switched on and cleared when it is
+     * switched off, so the stored time of day is never reset to midnight.
+     *
      * @return ResponseInterface JSON response indicating success or failure.
      */
     public function save(): ResponseInterface
     {
         $id = (int) ($this->request->getVar('id') ?? 0);
         $db = Database::connect();
-        $registration = $id > 0 ? $db->table('registrations')->select('id')->where('id', $id)->get()->getRow() : null;
+        $registration = $id > 0
+            ? $db->table('registrations')
+                ->select('id, submitted, submitted_at, transfer_proof_verified, transfer_proof_verified_at, registration_number')
+                ->where('id', $id)
+                ->get()
+                ->getRow()
+            : null;
         if (!$registration) {
             return $this->response->setJSON([
                 'id' => $id,
@@ -211,8 +221,6 @@ class RegistrantController extends BaseController
         $statuses = implode(',', array_map('strval', array_keys(registration_status())));
         $validation = service('validation');
         $validation->setRules([
-            'submitted_at' => ['label' => 'Tanggal Konfirmasi Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
-            'transfer_proof_verified_at' => ['label' => 'Tanggal Verifikasi Biaya Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
             'selection_status' => [
                 'label' => 'Status Seleksi',
                 'rules' => 'permit_empty|in_list[' . $statuses . ']',
@@ -222,8 +230,6 @@ class RegistrantController extends BaseController
         ]);
 
         $input = [
-            'submitted_at' => substr(trim((string)$this->request->getPost('submitted_at')), 0, 10),
-            'transfer_proof_verified_at' => substr(trim((string)$this->request->getPost('transfer_proof_verified_at')), 0, 10),
             'selection_status' => (string)$this->request->getPost('selection_status'),
             'selection_notes' => (string)$this->request->getPost('selection_notes'),
         ];
@@ -235,13 +241,22 @@ class RegistrantController extends BaseController
         }
 
         // FormBuilder posts checkbox values as "true"/"false".
-        $updateData = [
-            'submitted' => filter_var($this->request->getPost('submitted'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
-            'submitted_at' => $input['submitted_at'] !== '' ? $input['submitted_at'] : null,
-            'transfer_proof_verified' => filter_var($this->request->getPost('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
-            'transfer_proof_verified_at' => $input['transfer_proof_verified_at'] !== '' ? $input['transfer_proof_verified_at'] : null,
-            'updated_by' => (int)session()->get('actor'),
-        ];
+        $submitted = filter_var($this->request->getPost('submitted'), FILTER_VALIDATE_BOOLEAN);
+        // Only the applicant's own final submission checks the grades and documents and assigns
+        // the registration number, so a registration that never had one cannot be confirmed here.
+        if ($submitted && (int) $registration->submitted !== 1 && trim((string) ($registration->registration_number ?? '')) === '') {
+            return $this->response->setJSON([
+                'id' => $id,
+                'success' => false,
+                'message' => 'Pendaftaran ini belum pernah dikirim final oleh calon siswa sehingga belum memiliki No. Registrasi. Konfirmasi Pendaftaran tidak dapat diaktifkan.',
+            ]);
+        }
+        $updateData = registration_verification_changes(
+            $registration,
+            $submitted,
+            filter_var($this->request->getPost('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN)
+        );
+        $updateData['updated_by'] = (int)session()->get('actor');
 
         // Selection fields are hidden (and not posted) until the registration is confirmed.
         if ($this->request->getPost('selection_status') !== null) {
@@ -400,7 +415,8 @@ class RegistrantController extends BaseController
 
         $studentId = (int) $reg->student_id;
         $userModel = new UserModel();
-        if (!$userModel->find($studentId)) {
+        $student = $userModel->find($studentId);
+        if (!$student) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Data calon siswa tidak ditemukan.'
@@ -453,9 +469,30 @@ class RegistrantController extends BaseController
             'school_graduation_year' => ['label' => 'Tahun Lulus', 'rules' => 'permit_empty|regex_match[/^[0-9]{4}$/]'],
         ]);
 
+        // Birth place: like the applicant's profile page, the readable birth_place is derived
+        // from the chosen district (or the free text / country name outside Indonesia).
+        $birth = null;
+        if (is_scalar($this->request->getVar('birth_place_country_id'))) {
+            $birth_place = $this->request->getVar('birth_place');
+            $birth = resolve_birth_place([
+                'birth_place_country_id' => $this->request->getVar('birth_place_country_id'),
+                'birth_place_province_id' => $this->request->getVar('birth_place_province_id'),
+                'birth_place_district_id' => $this->request->getVar('birth_place_district_id'),
+                'birth_place' => is_scalar($birth_place) ? $birth_place : ($student->birth_place ?? ''),
+            ]);
+            // The free text is only stored when no district was chosen (district names such as
+            // "Sawahlunto/ Sijunjung" need not follow the free-text rule).
+            if ($birth['birth_place_district_id'] === null) {
+                $validation->setRule('birth_place', 'Tempat Lahir', ['permit_empty', 'max_length[100]', 'regex_match[/^[\p{L}\p{M}\s.,\'`()-]+$/u]'], [
+                    'max_length' => 'Tempat Lahir maksimal 100 karakter.',
+                    'regex_match' => 'Tempat Lahir hanya boleh berisi huruf, spasi, dan tanda baca sederhana.',
+                ]);
+            }
+        }
+
         $password = $this->request->getVar('password');
         if (is_string($password) && trim($password) !== '') {
-            $validation->setRule('password', ['label' => 'Kata Sandi', 'rules' => 'required|min_length[8]|max_length[255]']);
+            $validation->setRule('password', 'Kata Sandi', 'required|min_length[8]|max_length[255]');
         }
 
         if (!$validation->run((array) $this->request->getVar())) {
@@ -467,7 +504,6 @@ class RegistrantController extends BaseController
 
         $strFields = [
             'full_name', 'nik', 'npwp', 'citizenship', 'kps',
-            'birth_place_country_id', 'birth_place_province_id', 'birth_place_district_id',
             'birth_date',
             'address_country_id', 'address_province_id', 'address_district_id', 'address_subdistrict_id',
             'street_address', 'village', 'rt', 'rw', 'urban_village', 'post_code',
@@ -492,7 +528,7 @@ class RegistrantController extends BaseController
             $val = $this->request->getVar($field);
             if (is_scalar($val)) {
                 $val = trim((string) $val);
-                $data[$field] = in_array($field, $dateFields, true) && $val === '' ? null : $val;
+                $data[$field] = (in_array($field, $dateFields, true) || $field === 'school_graduation_year') && $val === '' ? null : $val;
             }
         }
         foreach ($intFields as $field) {
@@ -507,9 +543,8 @@ class RegistrantController extends BaseController
             $data['kps_receiver'] = (int) $kpsReceiver === 1 ? 1 : 0;
         }
 
-        if (isset($data['birth_place_country_id']) && $data['birth_place_country_id'] !== 'ID') {
-            $data['birth_place_province_id'] = null;
-            $data['birth_place_district_id'] = null;
+        if ($birth !== null) {
+            $data = array_merge($data, $birth);
         }
 
         if (is_string($password) && trim($password) !== '') {

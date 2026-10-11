@@ -74,20 +74,27 @@ class AdmissionController extends BaseController
         $admission_offering_ids = [];
         $admission_offering_id = 0;
         $submitted = false;
+        $submitted_offering_ids = [];
 
         $registrationModel = new RegistrationModel();
         $activeRegs = $registrationModel->findActiveByStudent($this->actor);
+        $all_submitted = !empty($activeRegs);
 
         foreach ($activeRegs as $reg) {
+            $oid = (int)($reg->admission_offering_id ?? 0);
             if (!empty($reg->submitted)) {
                 $submitted = true;
+                if ($oid > 0) {
+                    $submitted_offering_ids[] = $oid;
+                }
+            } else {
+                $all_submitted = false;
             }
-            $oid = (int)($reg->admission_offering_id ?? 0);
             if ($oid > 0) {
                 $admission_offering_ids[] = $oid;
             }
         }
-        $admission_offering_ids = array_unique($admission_offering_ids);
+        $admission_offering_ids = array_values(array_unique($admission_offering_ids));
 
         if (!empty($admission_offering_ids)) {
             $admission_offering_id = $admission_offering_ids[0];
@@ -100,6 +107,8 @@ class AdmissionController extends BaseController
             'admission_offering_id' => $admission_offering_id,
             'admission_offering_ids' => $admission_offering_ids,
             'submitted' => $submitted,
+            'all_submitted' => $all_submitted,
+            'submitted_offering_ids' => array_values(array_unique($submitted_offering_ids)),
             'allow_multiple' => $allow_multiple,
         ];
 
@@ -150,7 +159,7 @@ class AdmissionController extends BaseController
                 return $this->response->setJSON([
                     'id' => $existingData->id,
                     'success' => true,
-                    'message' => 'Already selected.',
+                    'message' => 'Pilihan ini sudah Anda pilih.',
                     'admission_offering_id' => $admission_offering_id,
                     'admission_offering_ids' => $registrationModel->getSelectedOfferingIds($this->actor),
                     'submitted' => false,
@@ -212,7 +221,7 @@ class AdmissionController extends BaseController
             return $this->response->setJSON([
                 'id' => $insertId,
                 'success' => $insertId > 0,
-                'message' => $insertId > 0 ? 'Saved successfully.' : 'Error occurred.',
+                'message' => $insertId > 0 ? 'Pilihan pendaftaran berhasil disimpan.' : 'Terjadi kesalahan saat menyimpan data.',
                 'admission_offering_id' => $admission_offering_id,
                 'admission_offering_ids' => $registrationModel->getSelectedOfferingIds($this->actor),
                 'submitted' => false,
@@ -257,7 +266,7 @@ class AdmissionController extends BaseController
             return $this->response->setJSON([
                 'id' => $existingData->id,
                 'success' => true,
-                'message' => 'Updated successfully.',
+                'message' => 'Pilihan pendaftaran berhasil disimpan.',
                 'admission_offering_id' => $admission_offering_id,
                 'admission_offering_ids' => $admission_offering_id > 0 ? [$admission_offering_id] : [],
                 'submitted' => (bool)($existingData->submitted ?? false),
@@ -269,7 +278,7 @@ class AdmissionController extends BaseController
         return $this->response->setJSON([
             'id' => $insertId,
             'success' => $insertId > 0,
-            'message' => $insertId > 0 ? 'Saved successfully.' : 'Error occurred.',
+            'message' => $insertId > 0 ? 'Pilihan pendaftaran berhasil disimpan.' : 'Terjadi kesalahan saat menyimpan data.',
             'admission_offering_id' => $insertId > 0 ? $admission_offering_id : 0,
             'admission_offering_ids' => $insertId > 0 ? [$admission_offering_id] : [],
             'submitted' => false,
@@ -286,7 +295,7 @@ class AdmissionController extends BaseController
         if ($admission_offering_id <= 0) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Invalid offering ID.',
+                'message' => 'Pilihan pendaftaran tidak valid.',
             ]);
         }
 
@@ -296,7 +305,7 @@ class AdmissionController extends BaseController
         if (!$existingData) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Registration not found.',
+                'message' => 'Data pendaftaran tidak ditemukan.',
             ]);
         }
 
@@ -345,7 +354,7 @@ class AdmissionController extends BaseController
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Removed successfully.',
+            'message' => 'Pilihan pendaftaran berhasil dibatalkan.',
             'admission_offering_ids' => $registrationModel->getSelectedOfferingIds($this->actor),
         ]);
     }

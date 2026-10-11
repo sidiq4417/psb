@@ -146,6 +146,10 @@ class StudentController extends BaseController
     /**
      * Save student registration details (Verification).
      *
+     * The confirmation and verification dates are not taken from the form: they are
+     * stamped when the matching checkbox is switched on and cleared when it is
+     * switched off, so the stored time of day is never reset to midnight.
+     *
      * @return ResponseInterface JSON response indicating success or failure.
      */
     public function save(): ResponseInterface
@@ -163,8 +167,6 @@ class StudentController extends BaseController
         $statuses = implode(',', array_map('strval', array_keys(registration_status())));
         $validation = service('validation');
         $validation->setRules([
-            'submitted_at' => ['label' => 'Tanggal Konfirmasi Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
-            'transfer_proof_verified_at' => ['label' => 'Tanggal Verifikasi Biaya Pendaftaran', 'rules' => 'permit_empty|valid_date[Y-m-d]'],
             'selection_status' => [
                 'label' => 'Status Seleksi',
                 'rules' => 'permit_empty|in_list[' . $statuses . ']',
@@ -174,8 +176,6 @@ class StudentController extends BaseController
         ]);
 
         $input = [
-            'submitted_at' => substr(trim((string)$this->request->getVar('submitted_at')), 0, 10),
-            'transfer_proof_verified_at' => substr(trim((string)$this->request->getVar('transfer_proof_verified_at')), 0, 10),
             'selection_status' => (string)$this->request->getVar('selection_status'),
             'selection_notes' => (string)$this->request->getVar('selection_notes'),
         ];
@@ -187,13 +187,22 @@ class StudentController extends BaseController
         }
 
         // FormBuilder posts checkbox values as "true"/"false".
-        $updateData = [
-            'submitted' => filter_var($this->request->getVar('submitted'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
-            'submitted_at' => $input['submitted_at'] !== '' ? $input['submitted_at'] : null,
-            'transfer_proof_verified' => filter_var($this->request->getVar('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
-            'transfer_proof_verified_at' => $input['transfer_proof_verified_at'] !== '' ? $input['transfer_proof_verified_at'] : null,
-            'updated_by' => (int)session()->get('actor'),
-        ];
+        $submitted = filter_var($this->request->getVar('submitted'), FILTER_VALIDATE_BOOLEAN);
+        // Only the applicant's own final submission checks the grades and documents and assigns
+        // the registration number, so a registration that never had one cannot be confirmed here.
+        if ($submitted && (int) $data->submitted !== 1 && trim((string) ($data->registration_number ?? '')) === '') {
+            return $this->response->setJSON([
+                'id' => $id,
+                'success' => false,
+                'message' => 'Pendaftaran ini belum pernah dikirim final oleh calon siswa sehingga belum memiliki No. Registrasi. Konfirmasi Pendaftaran tidak dapat diaktifkan.',
+            ]);
+        }
+        $updateData = registration_verification_changes(
+            $data,
+            $submitted,
+            filter_var($this->request->getVar('transfer_proof_verified'), FILTER_VALIDATE_BOOLEAN)
+        );
+        $updateData['updated_by'] = (int)session()->get('actor');
 
         // Selection fields are hidden (and not posted) until the registration is confirmed.
         if ($this->request->getVar('selection_status') !== null) {

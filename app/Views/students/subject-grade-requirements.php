@@ -153,6 +153,33 @@
         cursor: not-allowed;
     }
 
+    .grade-card .subject-locked {
+        font-size: 0.75rem;
+        color: #b45309;
+    }
+
+    .registration-status {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .registration-status .reg-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.25rem 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .registration-status .reg-item:last-of-type {
+        border-bottom: none;
+    }
+
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
@@ -233,6 +260,8 @@
     </div>
 </div>
 
+<div id="registrationStatus" class="registration-status mb-4 d-none"></div>
+
 <div id="subjectList" class="row g-3">
     <div class="col-12 text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
@@ -247,7 +276,7 @@
 
 <script>
     let subjects = [];
-    let isSubmitted = false;
+    let registrations = [];
 
     async function fetchData(url, params = null) {
         const res = await fetch(url, {
@@ -338,11 +367,12 @@
             const icon = icons[i % icons.length];
             const hasScore = parseFloat(s.score) > 0;
             const subjectId = parseInt(s.subject_id) || 0;
-            const disabled = isSubmitted ? "disabled" : "";
+            const locked = s.editable !== true;
+            const disabled = locked ? "disabled" : "";
 
             html += `
                 <div class="col-md-6 col-lg-4">
-                    <div class="grade-card ${hasScore ? 'saved' : ''} ${isSubmitted ? 'disabled' : ''}">
+                    <div class="grade-card ${hasScore ? 'saved' : ''} ${locked ? 'disabled' : ''}">
                         <div class="card-body">
                             <div class="subject-icon">
                                 <i class="${icon}" style="font-size: 1.25rem;"></i>
@@ -350,6 +380,7 @@
                             <div class="subject-info">
                                 <div class="subject-name">${H.Esc(s.subject_name)}</div>
                                 <div class="subject-threshold">Minimal ${H.Esc(s.threshold_score || 0)}</div>
+                                ${locked ? '<div class="subject-locked"><i class="cil-lock-locked me-1"></i>Terkunci</div>' : ''}
                             </div>
                             <div class="subject-input">
                                 <div class="input-group">
@@ -378,16 +409,52 @@
         container.innerHTML = html;
     }
 
+    /**
+     * Show which registrations still accept grade changes. Grades are stored per
+     * registration; finalised registrations and closed periods are locked.
+     */
+    function renderRegistrationStatus() {
+        const box = document.getElementById("registrationStatus");
+        const lockedCount = registrations.filter(r => r.editable !== true).length;
+        const header = document.querySelector(".grade-header p");
+
+        if (registrations.length && lockedCount === registrations.length) {
+            header.textContent = registrations.every(r => r.submitted === true)
+                ? "Pendaftaran telah dikonfirmasi. Nilai tidak dapat diubah lagi."
+                : "Nilai tidak dapat diubah lagi karena pendaftaran sudah dikirim final atau periode pendaftaran sudah ditutup.";
+        }
+
+        if (registrations.length < 2 && lockedCount === 0) {
+            box.classList.add("d-none");
+            box.innerHTML = "";
+            return;
+        }
+
+        let html = `<div class="fw-semibold mb-2"><i class="cil-lock-locked me-2"></i>Status Pendaftaran</div>`;
+        registrations.forEach(r => {
+            const badge = r.submitted === true ? "bg-success" : (r.editable === true ? "bg-primary" : "bg-secondary");
+            const icon = r.editable === true ? "cil-lock-unlocked" : "cil-lock-locked";
+            const number = r.registration_number ? ` <span class="text-muted small">(No. ${H.Esc(r.registration_number)})</span>` : "";
+            html += `
+                <div class="reg-item">
+                    <div>${H.Esc(r.label)}${number}</div>
+                    <span class="badge ${badge} text-nowrap"><i class="${icon} me-1"></i>${H.Esc(r.status)}${r.editable === true ? "" : " (terkunci)"}</span>
+                </div>`;
+        });
+        if (lockedCount < registrations.length) {
+            html += `<p class="small text-muted mb-0 mt-2">Perubahan nilai hanya disimpan pada pendaftaran yang belum dikirim final dan periodenya masih dibuka. Nilai pada pendaftaran yang terkunci tidak berubah.</p>`;
+        }
+        box.innerHTML = html;
+        box.classList.remove("d-none");
+    }
+
     async function loadData() {
         try {
             const res = await fetchData(_BASE_URL + "students/subject-grade-requirements/lists");
             subjects = res.records || [];
-            isSubmitted = subjects.some(s => s.submitted === true);
+            registrations = Array.isArray(res.registrations) ? res.registrations : [];
 
-            if (isSubmitted) {
-                document.querySelector(".grade-header p").textContent = "Pendaftaran telah dikonfirmasi. Nilai tidak dapat diubah lagi.";
-            }
-
+            renderRegistrationStatus();
             renderCards();
             updateProgress();
         } catch (err) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Administrator;
 
 use App\Controllers\BaseController;
+use App\Libraries\Auth;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
 use DateTimeZone;
@@ -100,14 +101,24 @@ class ApplicationSettingController extends BaseController
      */
     public function save(): ResponseInterface
     {
+        // Phone numbers are optional (a fresh install has none); when given, they may contain
+        // digits with the usual separators, e.g. "(0271) 123-456" or "+62 812 3456 7890".
+        $phone_rule = static fn(string $label): array => [
+            'label' => $label,
+            'rules' => ['permit_empty', 'max_length[50]', 'regex_match[/^(?=(?:\D*\d){5,15}\D*$)\+?[0-9 ().-]+$/D]'],
+            'errors' => [
+                'regex_match' => $label . ' hanya boleh berisi 5-15 digit angka (boleh diawali +, dengan spasi, titik, tanda hubung, atau tanda kurung).',
+            ],
+        ];
+
         $validation = service('validation');
         $validation->setRules([
             'institution_name' => ['label' => 'Nama Instansi', 'rules' => 'required|max_length[255]'],
             'tagline' => ['label' => 'Tagline', 'rules' => 'permit_empty|max_length[255]'],
             'address' => ['label' => 'Alamat', 'rules' => 'required|max_length[1000]'],
             'email' => ['label' => 'Email', 'rules' => 'required|valid_email|max_length[255]'],
-            'telephone' => ['label' => 'Telepon', 'rules' => 'required|max_length[50]'],
-            'mobile_phone' => ['label' => 'Handphone', 'rules' => 'required|max_length[50]'],
+            'telephone' => $phone_rule('Telepon Kantor'),
+            'mobile_phone' => $phone_rule('Handphone / WhatsApp'),
             'timezone' => ['label' => 'Zona Waktu', 'rules' => 'required|timezone'],
             'smtp_host' => ['label' => 'SMTP Host', 'rules' => 'permit_empty|max_length[255]'],
             'smtp_user' => ['label' => 'SMTP Username', 'rules' => 'permit_empty|max_length[255]'],
@@ -118,7 +129,14 @@ class ApplicationSettingController extends BaseController
             'max_registrations' => ['label' => 'Maksimal Jumlah Pendaftaran', 'rules' => 'permit_empty|is_natural_no_zero|less_than_equal_to[50]'],
         ]);
 
-        if (!$validation->run($this->request->getPost())) {
+        $post = (array) $this->request->getPost();
+        foreach (['telephone', 'mobile_phone'] as $field) {
+            if (is_string($post[$field] ?? null)) {
+                $post[$field] = trim($post[$field]);
+            }
+        }
+
+        if (!$validation->run($post)) {
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors(),
@@ -142,6 +160,13 @@ class ApplicationSettingController extends BaseController
             'allow_multiple_registration' => filter_var($this->request->getPost('allow_multiple_registration'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
             'max_registrations' => (int) $this->request->getPost('max_registrations') ?: 3,
         ];
+
+        // Optional phone numbers are stored as NULL when left empty (as in a fresh install).
+        foreach (['telephone', 'mobile_phone'] as $field) {
+            if ($data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
 
         // Secrets are write-only: an empty field keeps the stored value,
         // the "clear_*" checkbox removes it.
@@ -171,8 +196,8 @@ class ApplicationSettingController extends BaseController
 
         $db->table($this->table)->where('id', $this->settings_id)->update($data);
 
-        // Refresh the values cached in the session (page title, footer, favicon).
-        session()->set('institution_name', $data['institution_name']);
+        // Refresh the values cached in the session (page title, footer, sidebar logo, favicon).
+        Auth::cacheBranding($db->table($this->table)->where('id', $this->settings_id)->get()->getRow());
 
         return $this->response->setJSON([
             'id' => $this->settings_id,
@@ -241,9 +266,9 @@ class ApplicationSettingController extends BaseController
             @unlink($upload_path . $old_file_name);
         }
 
-        // Keep the session copy used by the layout in sync.
+        // Keep the session copy used by the layout and sidebar in sync.
         if ($document_name === 'favicon' || $document_name === 'logo') {
-            session()->set($document_name, $random_name);
+            Auth::cacheBranding($db->table($this->table)->where('id', $this->settings_id)->get()->getRow());
         }
 
         return $this->response->setJSON([

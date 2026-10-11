@@ -121,6 +121,7 @@
     </div>
 </div>
 
+<?php if (!empty($is_admin)): ?>
 <div class="row row-cards">
     <!-- Tabel Pendaftar Hari Ini -->
     <div class="col-md-6">
@@ -202,6 +203,7 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <script>
     // 1. Registraton Trend Chart

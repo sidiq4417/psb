@@ -154,7 +154,7 @@
                     placeholder="Nama" value="<?= esc($full_name, 'attr') ?>" <?= $is_submitted ? 'disabled' : '' ?>>
                 <label for="full_name">Nama Lengkap</label>
                 <?php if ($is_submitted): ?>
-                    <small class="text-muted mt-1 d-block">Nama tidak dapat diubah karena pendaftaran sudah dikonfirmasi.</small>
+                    <small class="text-muted mt-1 d-block">Nama tidak dapat diubah karena sudah ada pendaftaran yang dikirim final.</small>
                 <?php endif; ?>
             </div>
 

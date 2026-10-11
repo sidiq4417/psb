@@ -18,6 +18,8 @@ use CodeIgniter\HTTP\ResponseInterface;
  *   the session from a valid "remember me" cookie.
  * - Re-reads the user row on every request: a deleted account is logged out and
  *   the session role flags are refreshed from the database.
+ * - Refreshes the branding cached in the session (institution name, logo, favicon)
+ *   from the application settings, so a replaced logo or favicon shows for every user.
  * - Validates user roles based on the first URI segment (e.g., administrator, student).
  * - Redirects to the login page if not authenticated.
  * - Redirects to the unauthorized page if the user does not have the required role.
@@ -59,6 +61,17 @@ class AuthFilter implements FilterInterface
         $session->set('is_admin', (bool)$user->is_admin);
         $session->set('is_operator', (bool)$user->is_operator);
         $session->set('is_student', (bool)$user->is_student);
+
+        // Keep the branding stored in the session (institution name, sidebar logo, favicon) in sync with
+        // the settings, so a logo or favicon replaced by the administrator (the old file is deleted)
+        // does not break for users who were already logged in.
+        Auth::cacheBranding(
+            db_connect()->table('application_settings')
+                ->select('institution_name, logo, favicon')
+                ->where('id', 1)
+                ->get()
+                ->getRow()
+        );
 
         // If arguments are provided, use them to check specifically
         if (!empty($arguments)) {

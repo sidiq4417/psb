@@ -154,7 +154,7 @@ class GeneralSubjectGradeRequirementController extends BaseController
             return $this->response->setJSON([
                 'id' => $id,
                 'success' => true,
-                'message' => 'Updated successfully.',
+                'message' => 'Data berhasil diperbarui.',
             ]);
         }
 
@@ -163,7 +163,7 @@ class GeneralSubjectGradeRequirementController extends BaseController
             return $this->response->setJSON([
                 'id' => 0,
                 'success' => false,
-                'message' => 'Unique identifier already exists.',
+                'message' => 'Data dengan kombinasi ini sudah ada.',
             ]);
         }
 
@@ -178,7 +178,7 @@ class GeneralSubjectGradeRequirementController extends BaseController
         return $this->response->setJSON([
             'id' => $insert_id ? (int)$insert_id : 0,
             'success' => (bool)$insert_id,
-            'message' => $insert_id ? 'Saved successfully.' : 'Error occurred.',
+            'message' => $insert_id ? 'Data berhasil disimpan.' : 'Terjadi kesalahan saat menyimpan data.',
         ]);
     }
 }

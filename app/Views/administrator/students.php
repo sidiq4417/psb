@@ -293,11 +293,13 @@
     new FormBuilder(_form, {
         ajaxUrl: _BASE_URL + "administrator/students",
         title: "Data Calon Siswa Baru",
+        canDelete: false,
         fields: [
+            // The dates are shown only: the server stamps them when a checkbox is switched on and clears them when it is switched off.
             { label: "Konfirmasi Pendaftaran", name: "submitted", type: "checkbox" },
-            { label: "Tanggal Konfirmasi Pendaftaran", name: "submitted_at", type: "date" },
+            { label: "Tanggal Konfirmasi Pendaftaran", name: "submitted_at", disabled: true, placeholder: "Terisi otomatis saat dikonfirmasi" },
             { label: "Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified", type: "checkbox" },
-            { label: "Tanggal Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified_at", type: "date" },
+            { label: "Tanggal Verifikasi Biaya Pendaftaran", name: "transfer_proof_verified_at", disabled: true, placeholder: "Terisi otomatis saat diverifikasi" },
             { label: "Status Seleksi", name: "selection_status", type: "select", options: DS.RegistrationStatuses, placeholder: "Pilih status kelulusan...", dependency: {field: "submitted", value: true} },
             { label: "Catatan Seleksi", name: "selection_notes", type: "textarea", placeholder: "Masukan catatan seleksi, alasan diterima/ditolak, dll.", dependency: {field: "submitted", value: true} },
         ],

@@ -106,6 +106,7 @@
             </div>
         </div>
     </div>
+    <?php $help_phone = $mobile_phone !== '' ? $mobile_phone : $telephone; ?>
     <div class="col-md-3">
         <div class="card border-0 shadow-sm h-100 p-3">
             <div class="d-flex align-items-center mb-3">
@@ -114,7 +115,7 @@
                 </div>
                 <div>
                     <div class="text-secondary small fw-bold text-uppercase">Bantuan?</div>
-                    <div class="fs-6 fw-bold text-dark mt-1"><?= esc($mobile_phone) ?></div>
+                    <div class="fs-6 fw-bold text-dark mt-1 text-break"><?= $help_phone !== '' ? esc($help_phone) : ($email !== '' ? esc($email) : 'Hubungi panitia PSB') ?></div>
                 </div>
             </div>
             <div class="mt-auto border-top pt-3 d-flex justify-content-between">
@@ -122,8 +123,8 @@
                 <a href="mailto:<?= esc($email, 'attr') ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
                         class="cil-envelope-closed me-1"></i> Email</a>
                 <?php endif; ?>
-                <?php if ($telephone !== ''): ?>
-                <a href="tel:<?= esc($telephone, 'attr') ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
+                <?php if ($help_phone !== ''): ?>
+                <a href="tel:<?= esc($help_phone, 'attr') ?>" class="btn btn-ghost-info flex-fill fw-bold"><i
                         class="cil-phone me-1"></i> Telp</a>
                 <?php endif; ?>
             </div>

@@ -209,6 +209,21 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
                 $routes->post('subdistricts', [RegistrantController::class, 'subdistricts']);
             });
 
+            /**
+             * @section Applicants per Admission Offering
+             * Applicant data (lists, files, printed forms, verification) is admin-only,
+             * like "Data Pendaftar" above.
+             */
+            $routes->group('students', static function (RouteCollection $routes) {
+                $routes->post('lists', [StudentController::class, 'lists']);
+                $routes->post('form', [StudentController::class, 'form']);
+                $routes->post('save', [StudentController::class, 'save']);
+                $routes->post('update-subject-score', [StudentController::class, 'updateSubjectScore']);
+                $routes->get('download/(:any)', [StudentController::class, 'download']);
+                $routes->get('print/(:num)', [StudentController::class, 'print']);
+                $routes->get('(:num)', [StudentController::class, 'index']);
+            });
+
             /** @section Admission Statistics Report */
             $routes->get('admission-statistic-report', [AdmissionStatisticReportController::class, 'index']);
             $routes->post('admission-statistic-report/data', [AdmissionStatisticReportController::class, 'data']);
@@ -236,6 +251,8 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
         $routes->post('general-subject-grade-requirements/lists', [GeneralSubjectGradeRequirementController::class, 'lists']);
         $routes->post('general-subject-grade-requirements/form', [GeneralSubjectGradeRequirementController::class, 'form']);
         $routes->post('general-subject-grade-requirements/save', [GeneralSubjectGradeRequirementController::class, 'save']);
+        $routes->post('general-subject-grade-requirements/delete', [GeneralSubjectGradeRequirementController::class, 'delete']);
+        $routes->post('general-subject-grade-requirements/restore', [GeneralSubjectGradeRequirementController::class, 'restore']);
 
         $routes->get('general-entrance-exam-scores/(:num)', [GeneralEntranceExamScoreController::class, 'index']);
         $routes->post('general-entrance-exam-scores/lists', [GeneralEntranceExamScoreController::class, 'lists']);
@@ -246,12 +263,16 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
         $routes->post('general-document-requirements/lists', [GeneralDocumentRequirementController::class, 'lists']);
         $routes->post('general-document-requirements/form', [GeneralDocumentRequirementController::class, 'form']);
         $routes->post('general-document-requirements/save', [GeneralDocumentRequirementController::class, 'save']);
+        $routes->post('general-document-requirements/delete', [GeneralDocumentRequirementController::class, 'delete']);
+        $routes->post('general-document-requirements/restore', [GeneralDocumentRequirementController::class, 'restore']);
 
 
         $routes->get('specific-subject-grade-requirements/(:num)', [SpecificSubjectGradeRequirementController::class, 'index']);
         $routes->post('specific-subject-grade-requirements/lists', [SpecificSubjectGradeRequirementController::class, 'lists']);
         $routes->post('specific-subject-grade-requirements/form', [SpecificSubjectGradeRequirementController::class, 'form']);
         $routes->post('specific-subject-grade-requirements/save', [SpecificSubjectGradeRequirementController::class, 'save']);
+        $routes->post('specific-subject-grade-requirements/delete', [SpecificSubjectGradeRequirementController::class, 'delete']);
+        $routes->post('specific-subject-grade-requirements/restore', [SpecificSubjectGradeRequirementController::class, 'restore']);
 
         $routes->get('specific-entrance-exam-scores/(:num)', [SpecificEntranceExamScoreController::class, 'index']);
         $routes->post('specific-entrance-exam-scores/lists', [SpecificEntranceExamScoreController::class, 'lists']);
@@ -262,17 +283,8 @@ $routes->group('', ['filter' => 'auth:admin,operator,student'], static function 
         $routes->post('specific-document-requirements/lists', [SpecificDocumentRequirementController::class, 'lists']);
         $routes->post('specific-document-requirements/form', [SpecificDocumentRequirementController::class, 'form']);
         $routes->post('specific-document-requirements/save', [SpecificDocumentRequirementController::class, 'save']);
-
-        /** @section Student Management Modules */
-        $routes->group('students', static function (RouteCollection $routes) {
-            $routes->post('lists', [StudentController::class, 'lists']);
-            $routes->post('form', [StudentController::class, 'form']);
-            $routes->post('save', [StudentController::class, 'save']);
-            $routes->post('update-subject-score', [StudentController::class, 'updateSubjectScore']);
-            $routes->get('download/(:any)', [StudentController::class, 'download']);
-            $routes->get('print/(:num)', [StudentController::class, 'print']);
-            $routes->get('(:num)', [StudentController::class, 'index']);
-        });
+        $routes->post('specific-document-requirements/delete', [SpecificDocumentRequirementController::class, 'delete']);
+        $routes->post('specific-document-requirements/restore', [SpecificDocumentRequirementController::class, 'restore']);
     });
 
     /**

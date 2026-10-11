@@ -31,7 +31,7 @@
     new FormBuilder(_form, {
         title: "Tahun Ajaran",
         fields: [
-            {label: "Tahun Ajaran", name: "name", type: "text", required: true},
+            {label: "Tahun Ajaran", name: "name", type: "text", required: true, placeholder: "2026/2027"},
             {label: "Tanggal Mulai", name: "start_date", type: "date"},
             {label: "Tanggal Akhir", name: "end_date", type: "date"},
         ],

@@ -42,7 +42,8 @@ class RegistrationModel extends Model
     public function findByAdmissionYear(int $admission_year = 0, string $selection_status = '', int $branch_id = 0, int $entry_grade_id = 0, int $education_track_id = 0, int $education_program_id = 0): BaseResult|Query
     {
         $db = db_connect();
-        $conds = [];
+        // Cancelled (soft-deleted) choices are never listed as registrants.
+        $conds = ['x1.is_deleted = FALSE'];
         $params = [];
         if ($admission_year > 0) {
             $conds[] = 'x1.admission_year = ?';
@@ -408,11 +409,11 @@ class RegistrationModel extends Model
      * Finalise (submit) registrations under one registration number.
      *
      * Acquires the registration number lock, reuses the number of the
-     * student's already submitted registration in the same admission year (or
-     * generates the next one), stores it on every given unsubmitted
-     * registration and commits, all before the lock is released. Must not be
-     * called inside an open transaction, otherwise the lock would be released
-     * before the commit.
+     * student's already submitted (or reopened) registration in the same
+     * admission year, preferring a submitted one (or generates the next one),
+     * stores it on every given unsubmitted registration and commits, all
+     * before the lock is released. Must not be called inside an open
+     * transaction, otherwise the lock would be released before the commit.
      *
      * @param array<int, int> $ids            The registration IDs to submit.
      * @param int             $admission_year The admission year.
@@ -440,10 +441,10 @@ class RegistrationModel extends Model
                     ->select('registration_number')
                     ->where('student_id', $student_id)
                     ->where('admission_year', $admission_year)
-                    ->where('submitted', 1)
                     ->where('is_deleted', false)
                     ->where('registration_number IS NOT NULL')
                     ->where('registration_number !=', '')
+                    ->orderBy('submitted', 'DESC')
                     ->orderBy('id')
                     ->limit(1)
                     ->get()

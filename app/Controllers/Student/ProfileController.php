@@ -74,8 +74,17 @@ class ProfileController extends BaseController
         $citizenship = (string)($post['citizenship'] ?? '');
         $is_foreigner = $citizenship !== '' && $citizenship !== 'ID';
 
-        $validation = service('validation');
-        $validation->setRules([
+        // An Indonesian birth place picked from the district list is stored by its
+        // district name; the free-text field is hidden then, so it is neither
+        // validated nor used.
+        $birth_district_name = (string)($post['birth_place_country_id'] ?? '') === 'ID'
+            ? $this->findDistrictName((string)($post['birth_place_province_id'] ?? ''), (string)($post['birth_place_district_id'] ?? ''))
+            : null;
+        if ($birth_district_name !== null) {
+            $post['birth_place'] = '';
+        }
+
+        $rules = [
             'full_name' => UserModel::nameRule('Nama Lengkap'),
             'nik' => [
                 'label' => $is_foreigner ? 'No. Paspor' : 'NIK',
@@ -91,14 +100,6 @@ class ProfileController extends BaseController
                 'rules' => 'permit_empty|in_list[' . implode(',', array_keys(countries())) . ']',
                 'errors' => ['in_list' => 'Kewarganegaraan tidak valid.'],
             ],
-            'birth_place' => [
-                'label' => 'Tempat Lahir',
-                'rules' => ['permit_empty', 'max_length[100]', 'regex_match[/^[\p{L}\p{M}\s.,\'`()-]+$/u]'],
-                'errors' => [
-                    'max_length' => 'Tempat Lahir maksimal 100 karakter.',
-                    'regex_match' => 'Tempat Lahir hanya boleh berisi huruf, spasi, dan tanda baca sederhana.',
-                ],
-            ],
             'birth_date' => [
                 'label' => 'Tanggal Lahir',
                 'rules' => 'permit_empty|valid_date[Y-m-d]',
@@ -113,7 +114,20 @@ class ProfileController extends BaseController
             'kps_receiver' => ['label' => 'Penerima KPS', 'rules' => 'permit_empty|in_list[0,1]'],
             'kps' => ['label' => 'No. KPS', 'rules' => 'permit_empty|max_length[50]'],
             'npwp' => ['label' => 'NPWP', 'rules' => 'permit_empty|max_length[30]'],
-        ]);
+        ];
+        if ($birth_district_name === null) {
+            $rules['birth_place'] = [
+                'label' => 'Tempat Lahir',
+                'rules' => ['permit_empty', 'max_length[100]', 'regex_match[/^[\p{L}\p{M}\s.,\'`()-]+$/u]'],
+                'errors' => [
+                    'max_length' => 'Tempat Lahir maksimal 100 karakter.',
+                    'regex_match' => 'Tempat Lahir hanya boleh berisi huruf, spasi, dan tanda baca sederhana.',
+                ],
+            ];
+        }
+
+        $validation = service('validation');
+        $validation->setRules($rules);
 
         if (!$validation->run($post)) {
             return $this->response->setJSON([
@@ -127,7 +141,7 @@ class ProfileController extends BaseController
         if (!$user) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => ['user' => 'User not found.']
+                'errors' => ['user' => 'Pengguna tidak ditemukan.']
             ]);
         }
 
@@ -140,7 +154,7 @@ class ProfileController extends BaseController
             }
         }
 
-        $data = array_merge($data, $this->resolveBirthPlace($post));
+        $data = array_merge($data, $this->resolveBirthPlace($post, $birth_district_name));
 
         if (array_key_exists('religion_id', $post)) {
             $data['religion_id'] = (string)$post['religion_id'] !== '' ? (int)$post['religion_id'] : null;
@@ -155,7 +169,7 @@ class ProfileController extends BaseController
         return $this->response->setJSON([
             'id' => $this->id,
             'success' => true,
-            'message' => 'Updated successfully.',
+            'message' => 'Data berhasil disimpan.',
             'row' => $userModel->findWithoutSecrets($this->id),
         ]);
     }
@@ -166,12 +180,13 @@ class ProfileController extends BaseController
      * Indonesian birth places are picked from the province/district lists and
      * stored with a readable district name in birth_place (e.g. "Bekasi");
      * other countries (or "Lainnya") use the free-text place, falling back to
-     * the country name.
+     * the country name. The free text is ignored when a district is chosen.
      *
-     * @param array $post The trimmed POST data.
+     * @param array       $post          The trimmed POST data.
+     * @param string|null $district_name The chosen Indonesian district name, or null when none.
      * @return array<string, string|null> Columns for the users table.
      */
-    private function resolveBirthPlace(array $post): array
+    private function resolveBirthPlace(array $post, ?string $district_name): array
     {
         $country_id = (string)($post['birth_place_country_id'] ?? '');
         $free_text = (string)($post['birth_place'] ?? '');
@@ -179,7 +194,6 @@ class ProfileController extends BaseController
         if ($country_id === 'ID') {
             $province_id = (string)($post['birth_place_province_id'] ?? '');
             $district_id = (string)($post['birth_place_district_id'] ?? '');
-            $district_name = $this->findDistrictName($province_id, $district_id);
             return [
                 'birth_place_country_id' => 'ID',
                 'birth_place_province_id' => $province_id !== '' && $province_id !== '99' ? $province_id : null,

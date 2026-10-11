@@ -94,8 +94,11 @@ class App extends BaseConfig
      * is viewing the site from. It affects the language strings and other
      * strings (like currency markers, numbers, etc), that your program
      * should run under for this request.
+     *
+     * Indonesian ("id"): validation and upload messages come from app/Language/id;
+     * any language line not translated there falls back to English ("en").
      */
-    public string $defaultLocale = 'en';
+    public string $defaultLocale = 'id';
 
     /**
      * --------------------------------------------------------------------------
@@ -122,7 +125,7 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $supportedLocales = ['en'];
+    public array $supportedLocales = ['id', 'en'];
 
     /**
      * --------------------------------------------------------------------------

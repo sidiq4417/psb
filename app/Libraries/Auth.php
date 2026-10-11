@@ -301,12 +301,7 @@ class Auth
         $session->set('actor', $actor);
         $session->set('logged_in', true);
         $session->set('last_logged_in', time());
-        if ($setting_data && !empty($setting_data->institution_name ?? '')) {
-            $session->set('institution_name', $setting_data->institution_name);
-        }
-        if ($setting_data && !empty($setting_data->favicon ?? '')) {
-            $session->set('favicon', $setting_data->favicon);
-        }
+        self::cacheBranding($setting_data);
         if (!empty($ip_address ?? '')) $session->set('last_logged_in_ip', $ip_address);
         if (!empty($user_data->full_name ?? '')) $session->set('full_name', $user_data->full_name);
         if (!empty($user_data->office_mail ?? '')) $session->set('office_mail', $user_data->office_mail);
@@ -319,10 +314,37 @@ class Auth
     }
 
     /**
+     * Cache the branding used by the layout and sidebar (institution name, logo, favicon) in the session.
+     *
+     * Called on login and whenever the application settings are saved, so the
+     * sidebar logo follows the uploaded one. A value that is not set is removed,
+     * so the layout falls back to the bundled logo.png / favicon.ico.
+     *
+     * @param object|null $setting_data The application_settings row.
+     * @return void
+     */
+    public static function cacheBranding(?object $setting_data): void
+    {
+        $session = session();
+        foreach (['institution_name', 'logo', 'favicon'] as $key) {
+            $value = trim((string) ($setting_data->$key ?? ''));
+            // Logo and favicon are file names inside the public uploads folder.
+            if ($key !== 'institution_name' && in_array(basename($value), ['.', '..'], true)) {
+                $value = '';
+            }
+            if ($value !== '') {
+                $session->set($key, $key === 'institution_name' ? $value : basename($value));
+            } else {
+                $session->remove($key);
+            }
+        }
+    }
+
+    /**
      * Log out user.
      *
      * - Deletes remember-me token.
-     * - Clears session data.
+     * - Clears session data (including the cached branding).
      * - Regenerates session ID.
      *
      * @return bool True always.
@@ -333,7 +355,7 @@ class Auth
             $session = session();
             $actor = $this->getUserId();
             $this->remember->deleteUserToken($actor);
-            foreach (['actor', 'logged_in', 'last_logged_in', 'last_logged_in_ip', 'full_name', 'office_mail', 'gmail', 'yahoo', 'email', 'is_admin', 'is_operator', 'is_student', 'institution_name', 'school_type', 'favicon'] as $key) {
+            foreach (['actor', 'logged_in', 'last_logged_in', 'last_logged_in_ip', 'full_name', 'office_mail', 'gmail', 'yahoo', 'email', 'is_admin', 'is_operator', 'is_student', 'institution_name', 'school_type', 'logo', 'favicon'] as $key) {
                 $session->remove($key);
             }
             $session->regenerate(true);
